@@ -17,8 +17,6 @@ Under active development, any contributions are welcome.
 
 ## Installing
 
-### Kubernetes
-
 Clone this repository:
 
 ```shell
@@ -26,6 +24,8 @@ git clone https://github.com/acesso-io/eventhorizon.git
 
 cd eventhorizon/
 ```
+
+### Kubernetes
 
 Create the custom resources:
 
@@ -41,7 +41,7 @@ kubectl apply -f install/kubernetes/demo.yml
 
 ### Standalone
 
-Download the binaries from the [GitHub releases page](https://github.com/acesso-io/eventhorizon/releases).
+Download the binaries from the [GitHub releases page](https://github.com/acesso-io/eventhorizon/releases) to `dist/` folder.
 
 Set those environment variables:
 
@@ -56,5 +56,5 @@ export EVENTHORIZON_LOGGING_PRETTY=true
 Start EventHorizon:
 
 ```shell
-./eventhorizon
+./dist/eventhorizon
 ```
