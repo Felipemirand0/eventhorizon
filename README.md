@@ -58,3 +58,17 @@ Start EventHorizon:
 ```shell
 ./dist/eventhorizon
 ```
+
+## Environment variables
+
+| Variable                           | Default                                    | Options                                |
+| ---------------------------------- | ------------------------------------------ | -------------------------------------- |
+| EVENTHORIZON_MODE                  | kubernetes                                 | kubernetes, standalone                 |
+| EVENTHORIZON_NAME                  | kube-system/eventhorizon                   |                                        |
+| EVENTHORIZON_KUBERNETES_INCLUSTER  | true                                       |                                        |
+| EVENTHORIZON_KUBERNETES_KUBECONFIG |                                            |                                        |
+| EVENTHORIZON_KUBERNETES_MASTERURL  |                                            |                                        |
+| EVENTHORIZON_STANDALONE_CONFIG     | /opt/acesso/samples/standalone/fluentd.yml |                                        |
+| EVENTHORIZON_LOGGING_ENABLED       | true                                       |                                        |
+| EVENTHORIZON_LOGGING_LEVEL         | info                                       | debug, info, warn, error, fatal, panic |
+| EVENTHORIZON_LOGGING_PRETTY        | false                                      |                                        |
