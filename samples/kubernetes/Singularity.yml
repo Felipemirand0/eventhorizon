@@ -1,0 +1,14 @@
+apiVersion: eventhorizon.acesso.io/v1alpha1
+kind: Singularity
+metadata:
+  namespace: kube-system
+  name: eventhorizon
+spec:
+  transport:
+    name: http
+    http:
+      port: 1257
+    # nats:
+    #   server: http://localhost:4222
+    #   subject: eventhorizon
+  validation: true

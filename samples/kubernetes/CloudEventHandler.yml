@@ -1,0 +1,9 @@
+apiVersion: eventhorizon.acesso.io/v1alpha1
+kind: CloudEventHandler
+metadata:
+  name: default
+spec:
+  subjects:
+  - kube-system/eventhorizon
+  encoder: map
+  output: fluentd-stage

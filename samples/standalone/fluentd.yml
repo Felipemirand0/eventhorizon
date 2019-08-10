@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: List
+items:
+
+- apiVersion: eventhorizon.acesso.io/v1alpha1
+  kind: Singularity
+  metadata:
+    name: eventhorizon
+  spec:
+    transport:
+      name: http
+      http:
+        port: 1257
+      # nats:
+      #   server: http://localhost:4222
+      #   subject: eventhorizon
+    validation: true
+
+- apiVersion: eventhorizon.acesso.io/v1alpha1
+  kind: CloudEventOutput
+  metadata:
+    name: fluentd-cluster1
+  spec:
+    type: fluentd
+    fluentd:
+      key: eventhorizon
+      host: fluentd
+      port: 24224
+      network: tcp
+      timeout: 0s
+      writeTimeout: 3s
+      bufferLimit: 8192
+      retryWait: 500
+      maxRetryWait: 60000
+      async: false
+      subSecondPrecision: false
+      tagPrefix: ""
+      socketPath: ""
+
+- apiVersion: eventhorizon.acesso.io/v1alpha1
+  kind: CloudEventHandler
+  metadata:
+    name: default
+  spec:
+    subjects:
+    - eventhorizon
+    encoder: map
+    output: fluentd-cluster1
+
+- apiVersion: eventhorizon.acesso.io/v1alpha1
+  kind: CloudEventValidator
+  metadata:
+    name: default
+  spec:
+    handlers:
+    - default
+    priority: -1
+    allowedTypes:
+    - io.request.grpc
+    - io.request.rpc
+    - io.request.http
+    - io.event.consumer
+    - io.event.producer
+    allowedSources: []

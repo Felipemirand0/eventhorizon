@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  fluentd:
+    image: fluent/fluentd:v1.5-1
+    command: [ "fluentd", "-c", "/fluentd/etc/default.conf" ]
+    volumes:
+    - ./samples/fluentd.conf:/fluentd/etc/default.conf
+    ports:
+    - 24224:24224
+    - "24224:24224/udp"
+
+  eventhorizon:
+    image: acesso/eventhorizon
+    command: [ "sh", "-c", "sleep 3 && /opt/acesso/eventhorizon" ]
+    environment:
+    - EVENTHORIZON_MODE=standalone
+    - EVENTHORIZON_NAME=eventhorizon
+    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/fluentd.yml
+    - EVENTHORIZON_LOGGING_LEVEL=debug
+    - EVENTHORIZON_LOGGING_PRETTY=true
+    ports:
+    - 1257:1257
+    depends_on:
+    - fluentd
+    restart: always

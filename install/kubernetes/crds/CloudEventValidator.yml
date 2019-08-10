@@ -1,0 +1,17 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: cloudeventvalidators.eventhorizon.acesso.io
+spec:
+  group: eventhorizon.acesso.io
+  names:
+    kind: CloudEventValidator
+    plural: cloudeventvalidators
+    singular: cloudeventvalidator
+    shortNames:
+    - cev
+    categories:
+    - acesso-io
+    - eventhorizon-acesso-io
+  scope: Cluster
+  version: v1alpha1

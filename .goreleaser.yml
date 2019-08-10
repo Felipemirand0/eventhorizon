@@ -1,0 +1,44 @@
+before:
+  hooks:
+  - go mod download
+
+builds:
+- id: eventhorizon
+  main: ./cmd/eventhorizon/main.go
+  binary: eventhorizon
+  goos:
+  - darwin
+  - linux
+  - windows
+  goarch:
+  - amd64
+
+archives:
+- replacements:
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+    amd64: x86_64
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  name_template: "{{ .Tag }}"
+
+changelog:
+  sort: asc
+
+dockers:
+- goos: linux
+  goarch: amd64
+  dockerfile: Dockerfile
+  binaries:
+  - eventhorizon
+  image_templates:
+  - "acesso/eventhorizon:latest"
+  - "acesso/eventhorizon:{{ .Tag }}"
+  - "acesso/eventhorizon:v{{ .Major }}"
+  - "acesso/eventhorizon:v{{ .Major }}.{{ .Minor }}"
+  extra_files:
+  - samples

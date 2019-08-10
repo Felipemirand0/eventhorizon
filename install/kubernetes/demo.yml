@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: kube-system
+  name: eventhorizon-default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eventhorizon-default
+rules:
+- apiGroups: ["eventhorizon.acesso.io"]
+  resources: ["*"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: eventhorizon-default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: eventhorizon-default
+subjects:
+  - kind: ServiceAccount
+    name: eventhorizon-default
+    namespace: kube-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: kube-system
+  name: eventhorizon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventhorizon
+  template:
+    metadata:
+      labels:
+        app: eventhorizon
+    spec:
+      serviceAccountName: eventhorizon-default
+      containers:
+      - name: service
+        image: acesso/eventhorizon
+        command: [ "/opt/acesso/eventhorizon" ]
+        ports:
+        - containerPort: 1257
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: kube-system
+  name: eventhorizon
+spec:
+  ports:
+  - port: 1257
+    name: http
+  selector:
+    app: eventhorizon
+---

@@ -1,0 +1,20 @@
+apiVersion: eventhorizon.acesso.io/v1alpha1
+kind: CloudEventOutput
+metadata:
+  name: fluentd-stage
+spec:
+  type: fluentd
+  fluentd:
+    key: eventhorizon
+    host: fluentd.services-test.svc.cluster.local
+    port: 24224
+    network: tcp
+    timeout: 0s
+    writeTimeout: 3s
+    bufferLimit: 8192
+    retryWait: 500
+    maxRetryWait: 60000
+    async: false
+    subSecondPrecision: false
+    tagPrefix: ""
+    socketPath: ""

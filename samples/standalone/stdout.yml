@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: List
+items:
+
+- apiVersion: eventhorizon.acesso.io/v1alpha1
+  kind: Singularity
+  metadata:
+    name: eventhorizon
+  spec:
+    transport:
+      name: http
+      http:
+        port: 1257
+      # nats:
+      #   server: http://localhost:4222
+      #   subject: eventhorizon
+    validation: true
+
+- apiVersion: eventhorizon.acesso.io/v1alpha1
+  kind: CloudEventOutput
+  metadata:
+    name: stdout
+  spec:
+    type: stdout
+
+- apiVersion: eventhorizon.acesso.io/v1alpha1
+  kind: CloudEventHandler
+  metadata:
+    name: default
+  spec:
+    subjects:
+    - eventhorizon
+    encoder: map
+    output: stdout
+
+- apiVersion: eventhorizon.acesso.io/v1alpha1
+  kind: CloudEventValidator
+  metadata:
+    name: default
+  spec:
+    handlers:
+    - default
+    priority: -1
+    allowedTypes:
+    - io.request.grpc
+    - io.request.rpc
+    - io.request.http
+    - io.event.consumer
+    - io.event.producer
+    allowedSources: []
