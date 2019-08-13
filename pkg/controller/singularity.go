@@ -6,7 +6,6 @@ import (
 	"acesso.io/eventhorizon/pkg/singularity"
 
 	cloudevents "github.com/cloudevents/sdk-go"
-	cloudeventsclient "github.com/cloudevents/sdk-go/pkg/cloudevents/client"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents/transport"
 	cloudeventshttp "github.com/cloudevents/sdk-go/pkg/cloudevents/transport/http"
 	cloudeventsnats "github.com/cloudevents/sdk-go/pkg/cloudevents/transport/nats"
@@ -35,12 +34,20 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 		opts = append(opts, singularity.EnableValidation())
 	}
 
+	if nil != e.Spec.Metrics {
+		opts = append(opts, singularity.EnableMetrics(e.Spec.Metrics.Path, e.Spec.Metrics.Port))
+	}
+
 	c.singularity, err = singularity.New(key, opts...)
 	if nil != err {
 		return err
 	}
 
 	var transport transport.Transport
+
+	if nil == e.Spec.Transport {
+		return ErrNoTransport
+	}
 
 	switch e.Spec.Transport.Name {
 	case "http":
@@ -96,9 +103,9 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 		return err
 	}
 
-	go func(cli cloudeventsclient.Client) {
+	go func() {
 		var err error
-		var lvl zerolog.Level
+		var lvl zerolog.Level = zerolog.InfoLevel
 
 		defer func() {
 			rec := recover()
@@ -109,13 +116,40 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 				Msg("Stop client")
 		}()
 
-		lvl = zerolog.InfoLevel
+		log.Info().
+			Msg("Start client")
 
 		err = cli.StartReceiver(c.context, c.singularity.Receiver())
 		if nil != err {
 			lvl = zerolog.ErrorLevel
 		}
-	}(cli)
+	}()
+
+	if nil != c.singularity.Metrics() {
+		go func() {
+			var err error
+			var lvl zerolog.Level = zerolog.InfoLevel
+
+			defer func() {
+				rec := recover()
+
+				log.WithLevel(lvl).
+					Err(err).
+					Interface("recover", rec).
+					Msg("Stop metrics server")
+			}()
+
+			log.Info().
+				Str("path", e.Spec.Metrics.Path).
+				Int("port", e.Spec.Metrics.Port).
+				Msg("Start metrics server")
+
+			err = c.singularity.Metrics().Listen(c.context)
+			if nil != err {
+				lvl = zerolog.ErrorLevel
+			}
+		}()
+	}
 
 	log.Info().
 		Str("name", key).

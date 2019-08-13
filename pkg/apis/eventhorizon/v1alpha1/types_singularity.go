@@ -16,8 +16,9 @@ type Singularity struct {
 }
 
 type SingularitySpec struct {
-	Transport  Transport `json:"transport"`
-	Validation bool      `json:"validation"`
+	Transport  *Transport `json:"transport"`
+	Validation bool       `json:"validation"`
+	Metrics    *Metrics   `json:"metrics"`
 }
 
 type Transport struct {
@@ -33,6 +34,12 @@ type HTTPTransport struct {
 type NATSTransport struct {
 	Server  string `json:"server"`
 	Subject string `json:"subject"`
+}
+
+type Metrics struct {
+	Enabled bool   `json:"enabled"`
+	Port    int    `json:"port"`
+	Path    string `json:"path"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

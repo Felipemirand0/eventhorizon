@@ -40,7 +40,7 @@ func (c *Controller) SyncCloudEventHandler(e *v1alpha1.CloudEventHandler) error 
 	if nil != err {
 		log.Error().
 			Err(err).
-			Msg("Failing to create handler")
+			Msg("Set handler")
 
 		return err
 	}

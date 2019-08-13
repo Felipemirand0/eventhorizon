@@ -12,3 +12,7 @@ spec:
     #   server: http://localhost:4222
     #   subject: eventhorizon
   validation: true
+  metrics:
+    enabled: true
+    port: 1258
+    path: /metrics

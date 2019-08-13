@@ -20,6 +20,7 @@ type Singularity struct {
 	handlers   map[string]handler.Handler
 	validators map[string]validator.Validator
 	validation bool
+	metrics    *metricServer
 }
 
 func (s *Singularity) handle(ctx context.Context, event cloudevents.Event) error {
@@ -40,6 +41,10 @@ func (s *Singularity) handle(ctx context.Context, event cloudevents.Event) error
 			Str("subject", event.Subject()).
 			Time("time", event.Time()).
 			Msg("Event received")
+
+		if nil != s.metrics {
+			go s.metrics.record(event, err)
+		}
 	}()
 
 	lvl = zerolog.DebugLevel
@@ -93,6 +98,10 @@ func (s *Singularity) Receiver() func(context.Context, cloudevents.Event) error 
 
 func (s *Singularity) SetOption(opt Option) {
 	opt(s)
+}
+
+func (s *Singularity) Metrics() *metricServer {
+	return s.metrics
 }
 
 func New(name string, opts ...Option) (*Singularity, error) {

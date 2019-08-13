@@ -28,3 +28,9 @@ func EnableValidation() Option {
 		s.validation = true
 	}
 }
+
+func EnableMetrics(path string, port int) Option {
+	return func(s *Singularity) {
+		s.metrics = newMetricsServer(path, port)
+	}
+}

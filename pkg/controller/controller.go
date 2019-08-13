@@ -37,6 +37,7 @@ type Controller struct {
 	outputs     map[string]output.Output
 	validators  map[string]validator.Validator
 	context     context.Context
+	cancel      context.CancelFunc
 	mutex       *sync.RWMutex
 	threadiness int
 
@@ -58,19 +59,24 @@ type Controller struct {
 }
 
 func NewStandalone(name string) *Controller {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	return &Controller{
 		name:       name,
 		workqueue:  workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "EventHorizon"),
 		handlers:   map[string]handler.Handler{},
 		outputs:    map[string]output.Output{},
 		validators: map[string]validator.Validator{},
-		context:    context.Background(),
+		context:    ctx,
+		cancel:     cancel,
 		mutex:      &sync.RWMutex{},
 	}
 }
 
 func NewKubernetes(name string, threadiness int, client clientset.Interface, eventhorizon eventhorizon.Interface) *Controller {
 	utilruntime.Must(acessoscheme.AddToScheme(scheme.Scheme))
+
+	ctx, cancel := context.WithCancel(context.Background())
 
 	controller := &Controller{
 		name:        name,
@@ -79,7 +85,8 @@ func NewKubernetes(name string, threadiness int, client clientset.Interface, eve
 		handlers:    map[string]handler.Handler{},
 		outputs:     map[string]output.Output{},
 		validators:  map[string]validator.Validator{},
-		context:     context.Background(),
+		context:     ctx,
+		cancel:      cancel,
 		mutex:       &sync.RWMutex{},
 		threadiness: threadiness,
 
@@ -142,13 +149,15 @@ func (c *Controller) Run(stopCh <-chan struct{}) error {
 
 	defer utilruntime.HandleCrash()
 
-	var cancel context.CancelFunc
-	c.context, cancel = context.WithCancel(c.context)
-
 	defer func() {
-		cancel()
 		<-c.context.Done()
-		time.Sleep(1 * time.Second)
+
+		time.Sleep(3 * time.Second)
+
+		log.Info().
+			Str("name", c.name).
+			Msg("Evaporating black hole singularity")
+
 		c.workqueue.ShutDown()
 	}()
 
@@ -172,6 +181,8 @@ func (c *Controller) Run(stopCh <-chan struct{}) error {
 	}
 
 	<-stopCh
+
+	c.cancel()
 
 	klog.Info("Shut down workers")
 

@@ -11,13 +11,14 @@ require (
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
+	github.com/prometheus/client_golang v1.1.0
 	github.com/rs/zerolog v1.14.3
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/vrischmann/envconfig v1.2.0
 	k8s.io/api v0.0.0-20190808180749-077ce48e77da
 	k8s.io/apimachinery v0.0.0-20190809020650-423f5d784010
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/code-generator v0.0.0-00010101000000-000000000000 // indirect
+	k8s.io/code-generator v0.0.0-00010101000000-000000000000
 	k8s.io/klog v0.4.0
 	k8s.io/utils v0.0.0-20190809000727-6c36bc71fc4a // indirect
 )

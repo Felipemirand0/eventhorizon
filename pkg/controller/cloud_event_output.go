@@ -52,7 +52,7 @@ func (c *Controller) SyncCloudEventOutput(e *v1alpha1.CloudEventOutput) error {
 		if nil != err {
 			log.Error().
 				Err(err).
-				Msg("Failing to create output")
+				Msg("Set output")
 
 			return err
 		}
@@ -62,7 +62,7 @@ func (c *Controller) SyncCloudEventOutput(e *v1alpha1.CloudEventOutput) error {
 		if nil != err {
 			log.Error().
 				Err(err).
-				Msg("Failing to create output")
+				Msg("Set output")
 
 			return err
 		}
@@ -72,7 +72,7 @@ func (c *Controller) SyncCloudEventOutput(e *v1alpha1.CloudEventOutput) error {
 			Err(ErrUnknownOutput).
 			Strs("available", []string{"fluentd", "stdout"}).
 			Str("set", key).
-			Msg("Unknow output")
+			Msg("Set output")
 
 		return ErrUnknownOutput
 	}
