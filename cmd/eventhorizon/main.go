@@ -29,7 +29,7 @@ type conf struct {
 	Mode       string `envconfig:"default=kubernetes"`
 	Name       string `envconfig:"default=kube-system/eventhorizon"`
 	Standalone struct {
-		Config string `envconfig:"default=/opt/acesso/eventhorizon.yml"`
+		Config string `envconfig:"default=/opt/acesso/samples/standalone/stdout.yml"`
 	}
 	Kubernetes struct {
 		InCluster bool `envconfig:"default=true"`
