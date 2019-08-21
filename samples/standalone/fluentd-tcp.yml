@@ -11,6 +11,7 @@ items:
       name: http
       http:
         port: 1257
+        useStatusCodeOK: true # force success response code to be 200 (fortio benchmark only understands HTTP 200)
       # nats:
       #   server: http://localhost:4222
       #   subject: eventhorizon
@@ -39,7 +40,6 @@ items:
       async: false
       subSecondPrecision: false
       tagPrefix: ""
-      socketPath: ""
 
 - apiVersion: eventhorizon.acesso.io/v1alpha1
   kind: CloudEventHandler

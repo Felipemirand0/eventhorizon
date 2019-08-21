@@ -10,7 +10,7 @@ type Stdout struct {
 }
 
 func (o *Stdout) Send(ctx context.Context, event interface{}) error {
-	log.Info().
+	log.Debug().
 		Interface("event", event).
 		Msg("Sent event")
 

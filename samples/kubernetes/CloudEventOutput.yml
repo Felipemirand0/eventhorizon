@@ -17,4 +17,3 @@ spec:
     async: false
     subSecondPrecision: false
     tagPrefix: ""
-    socketPath: ""

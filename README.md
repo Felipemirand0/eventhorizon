@@ -72,3 +72,54 @@ Start EventHorizon:
 | EVENTHORIZON_LOGGING_ENABLED       | true                                       |                                        |
 | EVENTHORIZON_LOGGING_LEVEL         | info                                       | debug, info, warn, error, fatal, panic |
 | EVENTHORIZON_LOGGING_PRETTY        | false                                      |                                        |
+
+## Benchmarks
+
+Basic comparison running on a MacBook Pro (Retina, 13-inch, Early 2015), 2,7 GHz Intel Core i5, 8 GB 1867 MHz DDR3, with Docker for Mac configured with 4 CPUs, 4 GiB of memory and 512 MiB of swap.
+
+![fortio benchmark graphic 2019-08-21](benchmark/fortio/2019-08-21-fluentd_x_fluentd-sock.png?raw=true "2019-08-21 fluentd tcp x fluentd sock")
+
+Commands:
+
+```shell
+$ docker-compose up
+
+$ fortio load \
+    -c 4 -qps 50000 -t 30s -a -labels "eventhorizon stdout" \
+    -content-type application/json \
+    -H "Ce-Custom-A: Foo" \
+    -H "Ce-Custom-B: Bar" \
+    -H "Ce-Id: BenchmarkHTTPClient" \
+    -H "Ce-Source: myapp" \
+    -H "Ce-Specversion: 0.3" \
+    -H "Ce-Subject: MyMethod.MyAction" \
+    -H "Ce-Time: 2019-08-20T22:18:27.166904Z" \
+    -H "Ce-Type: io.request.rpc" \
+    http://localhost:1258
+
+$ fortio load \
+    -c 4 -qps 50000 -t 30s -a -labels "eventhorizon fluentd tcp" \
+    -content-type application/json \
+    -H "Ce-Custom-A: Foo" \
+    -H "Ce-Custom-B: Bar" \
+    -H "Ce-Id: BenchmarkHTTPClient" \
+    -H "Ce-Source: myapp" \
+    -H "Ce-Specversion: 0.3" \
+    -H "Ce-Subject: MyMethod.MyAction" \
+    -H "Ce-Time: 2019-08-20T22:18:27.166904Z" \
+    -H "Ce-Type: io.request.rpc" \
+    http://localhost:1259
+
+$ fortio load \
+    -c 4 -qps 50000 -t 30s -a -labels "eventhorizon fluentd sock" \
+    -content-type application/json \
+    -H "Ce-Custom-A: Foo" \
+    -H "Ce-Custom-B: Bar" \
+    -H "Ce-Id: BenchmarkHTTPClient" \
+    -H "Ce-Source: myapp" \
+    -H "Ce-Specversion: 0.3" \
+    -H "Ce-Subject: MyMethod.MyAction" \
+    -H "Ce-Time: 2019-08-20T22:18:27.166904Z" \
+    -H "Ce-Type: io.request.rpc" \
+    http://localhost:1260
+```

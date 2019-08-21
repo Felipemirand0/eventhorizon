@@ -28,7 +28,8 @@ type Transport struct {
 }
 
 type HTTPTransport struct {
-	Port int `json:"port"`
+	Port            int  `json:"port"`
+	UseStatusCodeOK bool `json:"useStatusCodeOK"`
 }
 
 type NATSTransport struct {

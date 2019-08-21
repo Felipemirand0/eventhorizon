@@ -43,7 +43,7 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 		return err
 	}
 
-	var transport transport.Transport
+	var t transport.Transport
 
 	if nil == e.Spec.Transport {
 		return ErrNoTransport
@@ -51,9 +51,10 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 
 	switch e.Spec.Transport.Name {
 	case "http":
-		transport, err = cloudeventshttp.New(
+		t, err = cloudeventshttp.New(
 			cloudeventshttp.WithPort(e.Spec.Transport.HTTP.Port),
 		)
+
 		if err != nil {
 			log.Error().
 				Err(err).
@@ -68,7 +69,7 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 			Msg("Set transport")
 
 	case "nats":
-		transport, err = cloudeventsnats.New(
+		t, err = cloudeventsnats.New(
 			e.Spec.Transport.NATS.Server,
 			e.Spec.Transport.NATS.Subject,
 		)
@@ -94,13 +95,20 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 		return ErrUnknownTransport
 	}
 
-	cli, err := cloudevents.NewClient(transport)
+	cli, err := cloudevents.NewClient(t)
 	if err != nil {
 		log.Error().
 			Err(err).
 			Msg("Create client")
 
 		return err
+	}
+
+	if "http" == e.Spec.Transport.Name && e.Spec.Transport.HTTP.UseStatusCodeOK {
+		// overwrite receiver
+		r := singularity.NewReceiver(cli)
+		r.SetStatusCodeOK(true)
+		t.SetReceiver(r)
 	}
 
 	go func() {

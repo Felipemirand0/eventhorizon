@@ -24,9 +24,21 @@ items:
 - apiVersion: eventhorizon.acesso.io/v1alpha1
   kind: CloudEventOutput
   metadata:
-    name: stdout
+    name: fluentd-cluster1
   spec:
-    type: stdout
+    type: fluentd
+    fluentd:
+      key: eventhorizon
+      socketPath: "/tmp/fluentd.sock"
+      network: unix
+      timeout: 0s
+      writeTimeout: 3s
+      bufferLimit: 8192
+      retryWait: 500
+      maxRetryWait: 60000
+      async: false
+      subSecondPrecision: false
+      tagPrefix: ""
 
 - apiVersion: eventhorizon.acesso.io/v1alpha1
   kind: CloudEventHandler
@@ -36,7 +48,7 @@ items:
     subjects:
     - eventhorizon
     encoder: map
-    output: stdout
+    output: fluentd-cluster1
 
 - apiVersion: eventhorizon.acesso.io/v1alpha1
   kind: CloudEventValidator

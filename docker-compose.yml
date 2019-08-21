@@ -6,6 +6,7 @@ services:
     command: [ "fluentd", "-c", "/fluentd/etc/default.conf" ]
     volumes:
     - ./samples/fluentd.conf:/fluentd/etc/default.conf
+    - fluentd-sock:/tmp
     ports:
     - 24224:24224
     - "24224:24224/udp"
@@ -16,7 +17,7 @@ services:
     environment:
     - EVENTHORIZON_MODE=standalone
     - EVENTHORIZON_NAME=eventhorizon
-    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/fluentd.yml
+    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/stdout.yml
     - EVENTHORIZON_LOGGING_LEVEL=debug
     - EVENTHORIZON_LOGGING_PRETTY=true
     ports:
@@ -24,3 +25,46 @@ services:
     depends_on:
     - fluentd
     restart: always
+
+  bench_eventhorizon_out_stdout:
+    image: acesso/eventhorizon
+    command: [ "sh", "-c", "sleep 3 && /opt/acesso/eventhorizon" ]
+    environment:
+    - EVENTHORIZON_MODE=standalone
+    - EVENTHORIZON_NAME=eventhorizon
+    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/stdout.yml
+    ports:
+    - 1258:1257
+    restart: always
+
+  bench_eventhorizon_out_fluentd_tcp:
+    image: acesso/eventhorizon
+    command: [ "sh", "-c", "sleep 3 && /opt/acesso/eventhorizon" ]
+    environment:
+    - EVENTHORIZON_MODE=standalone
+    - EVENTHORIZON_NAME=eventhorizon
+    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/fluentd-tcp.yml
+    ports:
+    - 1259:1257
+    depends_on:
+    - fluentd
+    restart: always
+
+  bench_eventhorizon_out_fluentd_sock:
+    image: acesso/eventhorizon
+    command: [ "sh", "-c", "sleep 3 && /opt/acesso/eventhorizon" ]
+    user: "root:root"
+    environment:
+    - EVENTHORIZON_MODE=standalone
+    - EVENTHORIZON_NAME=eventhorizon
+    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/fluentd-sock.yml
+    ports:
+    - 1260:1257
+    volumes:
+    - fluentd-sock:/tmp
+    depends_on:
+    - fluentd
+    restart: always
+
+volumes:
+  fluentd-sock:
