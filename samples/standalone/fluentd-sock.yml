@@ -24,7 +24,7 @@ items:
 - apiVersion: eventhorizon.acesso.io/v1alpha1
   kind: CloudEventOutput
   metadata:
-    name: fluentd-cluster1
+    name: fluentd
   spec:
     type: fluentd
     fluentd:
@@ -48,7 +48,7 @@ items:
     subjects:
     - eventhorizon
     encoder: map
-    output: fluentd-cluster1
+    output: fluentd
 
 - apiVersion: eventhorizon.acesso.io/v1alpha1
   kind: CloudEventValidator

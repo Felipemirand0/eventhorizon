@@ -2,6 +2,11 @@ package output
 
 import (
 	"context"
+	"errors"
+	"net"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/fluent/fluent-logger-golang/fluent"
 	"github.com/rs/zerolog"
@@ -25,14 +30,49 @@ func NewFluentd(cfg fluent.Config) (*Fluentd, error) {
 
 	o := Fluentd{}
 
+	waitForFluentd(cfg)
+
 	o.cli, err = fluent.New(cfg)
 	if err != nil {
 		log.WithLevel(zerolog.WarnLevel).
 			Err(err).
 			Msg("Failing to connect to fluentd")
 
-		return &o, err
+		return nil, err
 	}
 
 	return &o, nil
+}
+
+func waitForFluentd(cfg fluent.Config) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	for {
+		if ctx.Err() != nil {
+			return errors.New("unable to connect to Fluentd")
+		}
+
+		switch cfg.FluentNetwork {
+		case "unix":
+			if _, err := os.Stat(cfg.FluentSocketPath); err != nil {
+				if os.IsNotExist(err) {
+					continue
+				}
+
+				return err
+			}
+
+		case "tcp":
+			_, err := net.Dial("tcp", net.JoinHostPort(cfg.FluentHost, strconv.Itoa(cfg.FluentPort)))
+
+			if nil != err {
+				continue
+			}
+		}
+
+		break
+	}
+
+	return nil
 }
