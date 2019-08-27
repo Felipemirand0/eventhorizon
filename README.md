@@ -40,7 +40,7 @@ Set those environment variables:
 ```shell
 export EVENTHORIZON_MODE=standalone
 export EVENTHORIZON_NAME=eventhorizon
-export EVENTHORIZON_STANDALONE_CONFIG=/path/to/release/samples/standalone/stdout.yml
+export EVENTHORIZON_STANDALONE_CONFIG=samples/standalone/stdout.yml
 export EVENTHORIZON_LOGGING_LEVEL=info
 export EVENTHORIZON_LOGGING_PRETTY=true
 ```
@@ -69,7 +69,7 @@ Start EventHorizon:
 
 Basic comparison running on a MacBook Pro (Retina, 13-inch, Early 2015), 2,7 GHz Intel Core i5, 8 GB 1867 MHz DDR3, with Docker for Mac configured with 4 CPUs, 4 GiB of memory and 512 MiB of swap.
 
-![fortio benchmark graphic 2019-08-21](benchmark/fortio/2019-08-21-fluentd-tcp_x_fluentd-sock.png?raw=true "2019-08-21 fluentd tcp x fluentd sock")
+![fortio benchmark graphic 2019-08-21](benchmark/fortio/2019-08-27-fluentd_tcp_x_sock.png?raw=true "2019-08-21 fluentd tcp x fluentd sock")
 
 Commands:
 
