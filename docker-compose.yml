@@ -13,7 +13,7 @@ services:
 
   eventhorizon:
     image: acesso/eventhorizon
-    command: [ "/opt/acesso/eventhorizon" ]
+    command: [ "/opt/acesso/bin/eventhorizon" ]
     environment:
     - EVENTHORIZON_MODE=standalone
     - EVENTHORIZON_NAME=eventhorizon
@@ -28,7 +28,7 @@ services:
 
   bench_eventhorizon_out_stdout:
     image: acesso/eventhorizon
-    command: [ "/opt/acesso/eventhorizon" ]
+    command: [ "/opt/acesso/bin/eventhorizon" ]
     environment:
     - EVENTHORIZON_MODE=standalone
     - EVENTHORIZON_NAME=eventhorizon
@@ -39,7 +39,7 @@ services:
 
   bench_eventhorizon_out_fluentd_tcp:
     image: acesso/eventhorizon
-    command: [ "/opt/acesso/eventhorizon" ]
+    command: [ "/opt/acesso/bin/eventhorizon" ]
     environment:
     - EVENTHORIZON_MODE=standalone
     - EVENTHORIZON_NAME=eventhorizon
@@ -52,7 +52,7 @@ services:
 
   bench_eventhorizon_out_fluentd_sock:
     image: acesso/eventhorizon
-    command: [ "/opt/acesso/eventhorizon" ]
+    command: [ "/opt/acesso/bin/eventhorizon" ]
     user: "root:root"
     environment:
     - EVENTHORIZON_MODE=standalone

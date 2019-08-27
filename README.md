@@ -17,13 +17,7 @@ Under active development, any contributions are welcome.
 
 ## Installing
 
-Clone this repository:
-
-```shell
-git clone https://github.com/acesso-io/eventhorizon.git
-
-cd eventhorizon/
-```
+Download latest release at [GitHub releases page](https://github.com/acesso-io/eventhorizon/releases), extract content and open a terminal inside the folder.
 
 ### Kubernetes
 
@@ -41,14 +35,12 @@ kubectl apply -f install/kubernetes/demo.yml
 
 ### Standalone
 
-Download the binaries from the [GitHub releases page](https://github.com/acesso-io/eventhorizon/releases) to `dist/` folder.
-
 Set those environment variables:
 
 ```shell
 export EVENTHORIZON_MODE=standalone
 export EVENTHORIZON_NAME=eventhorizon
-export EVENTHORIZON_STANDALONE_CONFIG=$PWD/samples/standalone/stdout.yml
+export EVENTHORIZON_STANDALONE_CONFIG=/path/to/release/samples/standalone/stdout.yml
 export EVENTHORIZON_LOGGING_LEVEL=info
 export EVENTHORIZON_LOGGING_PRETTY=true
 ```
@@ -56,7 +48,7 @@ export EVENTHORIZON_LOGGING_PRETTY=true
 Start EventHorizon:
 
 ```shell
-./dist/eventhorizon
+./bin/eventhorizon
 ```
 
 ## Environment variables

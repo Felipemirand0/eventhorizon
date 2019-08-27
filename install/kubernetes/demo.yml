@@ -2,12 +2,12 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   namespace: kube-system
-  name: eventhorizon-default
+  name: eventhorizon
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: eventhorizon-default
+  name: eventhorizon
 rules:
 - apiGroups: ["eventhorizon.acesso.io"]
   resources: ["*"]
@@ -16,15 +16,31 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: eventhorizon-default
+  name: eventhorizon
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: eventhorizon-default
+  name: eventhorizon
 subjects:
   - kind: ServiceAccount
-    name: eventhorizon-default
+    name: eventhorizon
     namespace: kube-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: kube-system
+  name: eventhorizon
+data:
+  fluentd.conf: |
+    <source>
+      @type unix
+      path /opt/acesso/run/fluentd.sock
+    </source>
+
+    <match *.**>
+      @type stdout
+    </match>
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -41,13 +57,31 @@ spec:
       labels:
         app: eventhorizon
     spec:
-      serviceAccountName: eventhorizon-default
+      serviceAccountName: eventhorizon
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
       - name: service
         image: acesso/eventhorizon
-        command: [ "/opt/acesso/eventhorizon" ]
+        command: [ "/opt/acesso/bin/eventhorizon" ]
+        env:
+        - name: EVENTHORIZON_NAME
+          value: kube-system/eventhorizon
         ports:
         - containerPort: 1257
+        volumeMounts:
+        - name: run
+          mountPath: /opt/acesso/run
+      - name: fluentd
+        image: fluent/fluentd:v1.7-1
+        command: [ "fluentd", "-c", "/opt/acesso/config/fluentd.conf" ]
+        volumeMounts:
+        - name: config
+          mountPath: /opt/acesso/config
+        - name: run
+          mountPath: /opt/acesso/run
 ---
 apiVersion: v1
 kind: Service

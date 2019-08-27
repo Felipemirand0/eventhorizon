@@ -5,7 +5,7 @@ before:
 builds:
 - id: eventhorizon
   main: ./cmd/eventhorizon/main.go
-  binary: eventhorizon
+  binary: bin/eventhorizon
   goos:
   - darwin
   - linux
@@ -19,6 +19,11 @@ archives:
     linux: Linux
     windows: Windows
     amd64: x86_64
+  files:
+  - LICENSE
+  - README.md
+  - samples/**/*
+  - install/**/*
 
 checksum:
   name_template: checksums.txt
@@ -34,11 +39,14 @@ dockers:
   goarch: amd64
   dockerfile: Dockerfile
   binaries:
-  - eventhorizon
+  - bin/eventhorizon
   image_templates:
   - "acesso/eventhorizon:latest"
   - "acesso/eventhorizon:{{ .Tag }}"
   - "acesso/eventhorizon:v{{ .Major }}"
   - "acesso/eventhorizon:v{{ .Major }}.{{ .Minor }}"
   extra_files:
+  - LICENSE
+  - README.md
   - samples
+  - install

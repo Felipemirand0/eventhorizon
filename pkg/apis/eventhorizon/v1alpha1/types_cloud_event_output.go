@@ -25,6 +25,7 @@ type CloudEventOutputFluentd struct {
 	Key                string `json:"key"`
 	Host               string `json:"host"`
 	Port               int    `json:"port"`
+	SocketPath         string `json:"socketPath"`
 	Network            string `json:"network"`
 	Timeout            string `json:"timeout"`
 	WriteTimeout       string `json:"writeTimeout"`
@@ -35,7 +36,6 @@ type CloudEventOutputFluentd struct {
 	Async              bool   `json:"async"`
 	SubSecondPrecision bool   `json:"subSecondPrecision"`
 	TagPrefix          string `json:"tagPrefix"`
-	SocketPath         string `json:"socketPath"`
 }
 
 // +genclient:nonNamespaced

@@ -6,4 +6,4 @@ spec:
   subjects:
   - kube-system/eventhorizon
   encoder: map
-  output: fluentd-stage
+  output: fluentd
