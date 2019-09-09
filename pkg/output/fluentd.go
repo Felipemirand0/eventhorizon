@@ -45,7 +45,7 @@ func NewFluentd(cfg fluent.Config) (*Fluentd, error) {
 }
 
 func waitForFluentd(cfg fluent.Config) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	for {
