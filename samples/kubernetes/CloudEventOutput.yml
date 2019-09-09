@@ -5,7 +5,6 @@ metadata:
 spec:
   type: fluentd
   fluentd:
-    key: eventhorizon
     socketPath: /opt/acesso/run/fluentd.sock
     network: unix
     timeout: 0s

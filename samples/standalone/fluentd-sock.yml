@@ -28,7 +28,6 @@ items:
   spec:
     type: fluentd
     fluentd:
-      key: eventhorizon
       socketPath: "/tmp/fluentd.sock"
       network: unix
       timeout: 0s

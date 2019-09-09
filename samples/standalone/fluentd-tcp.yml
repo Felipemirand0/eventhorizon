@@ -28,7 +28,6 @@ items:
   spec:
     type: fluentd
     fluentd:
-      key: eventhorizon
       host: fluentd
       port: 24224
       network: tcp
