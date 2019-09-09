@@ -8,7 +8,7 @@ EventHorizon provides a uniform way for handling events ([CloudEvents](https://c
 
 - **[Singularity](samples/kubernetes/Singularity.yml)** - describes the instance itself, the transport method (currently supports HTTP or NATS).
 - **[CloudEventHandler](samples/kubernetes/CloudEventHandler.yml)** - describes event handler itself, the encoder and the output.
-- **[CloudEventValidator](samples/kubernetes/CloudEventValidator.yml)** - and optional validator, in case you want to enforce specific events.
+- **[CloudEventValidator](samples/kubernetes/CloudEventValidator.yml)** - an optional validator, in case you want to enforce specific events.
 - **[CloudEventOutput](samples/kubernetes/CloudEventOutput.yml)** - describes where to send the event output to (currently supports Fluentd).
 
 ## Current status
