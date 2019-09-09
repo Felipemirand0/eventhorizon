@@ -22,7 +22,6 @@ type CloudEventOutputSpec struct {
 }
 
 type CloudEventOutputFluentd struct {
-	Key                string `json:"key"`
 	Host               string `json:"host"`
 	Port               int    `json:"port"`
 	SocketPath         string `json:"socketPath"`

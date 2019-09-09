@@ -5,5 +5,8 @@ metadata:
 spec:
   subjects:
   - kube-system/eventhorizon
+  labels:
+    field1: value1
+    field2: value2
   encoder: map
   output: fluentd

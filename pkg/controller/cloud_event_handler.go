@@ -36,7 +36,7 @@ func (c *Controller) SyncCloudEventHandler(e *v1alpha1.CloudEventHandler) error 
 		controller: c,
 	}
 
-	han, err = handler.NewBasic(out, enc)
+	han, err = handler.NewBasic(out, enc, e.Spec.Labels)
 	if nil != err {
 		log.Error().
 			Err(err).

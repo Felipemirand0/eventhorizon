@@ -17,9 +17,10 @@ type CloudEventHandler struct {
 }
 
 type CloudEventHandlerSpec struct {
-	Subjects []string `json:"subjects"`
-	Encoder  string   `json:"encoder"`
-	Output   string   `json:"output"`
+	Subjects []string          `json:"subjects"`
+	Labels   map[string]string `json:"labels,omitempty"`
+	Encoder  string            `json:"encoder"`
+	Output   string            `json:"output"`
 }
 
 // +genclient:nonNamespaced

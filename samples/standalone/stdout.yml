@@ -35,6 +35,9 @@ items:
   spec:
     subjects:
     - eventhorizon
+    labels:
+      field1: value1
+      field2: value2
     encoder: map
     output: stdout
 
