@@ -18,7 +18,15 @@ type Fluentd struct {
 }
 
 func (o *Fluentd) Send(ctx context.Context, event interface{}) error {
-	return o.cli.Post("eventhorizon", event)
+	err := o.cli.Post("eventhorizon", event)
+	if nil != err {
+		log.WithLevel(zerolog.ErrorLevel).
+			Err(err).
+			Str("output", "fluentd").
+			Msg("failed to delivery message")
+	}
+
+	return err
 }
 
 func (o *Fluentd) Close() error {
@@ -36,7 +44,8 @@ func NewFluentd(cfg fluent.Config) (*Fluentd, error) {
 	if err != nil {
 		log.WithLevel(zerolog.WarnLevel).
 			Err(err).
-			Msg("Failing to connect to fluentd")
+			Str("output", "fluentd").
+			Msg("failed to connect")
 
 		return nil, err
 	}
@@ -50,7 +59,7 @@ func waitForFluentd(cfg fluent.Config) error {
 
 	for {
 		if ctx.Err() != nil {
-			return errors.New("unable to connect to Fluentd")
+			return errors.New("unable to connect to fluentd")
 		}
 
 		switch cfg.FluentNetwork {
