@@ -37,7 +37,7 @@ func BenchmarkHTTPClient(b *testing.B) {
 			"testing": "test",
 		})
 
-		_, err = c.Send(context.Background(), event)
+		_, _, err = c.Send(context.Background(), event)
 		if err != nil {
 			b.Errorf("failed delivery event: %v", err)
 		}
