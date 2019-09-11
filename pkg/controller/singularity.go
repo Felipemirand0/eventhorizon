@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"net/http"
+
 	"acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha1"
 	. "acesso.io/eventhorizon/pkg/errors"
 	"acesso.io/eventhorizon/pkg/singularity"
@@ -54,6 +56,11 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 		t, err = cloudeventshttp.New(
 			cloudeventshttp.WithPort(e.Spec.Transport.HTTP.Port),
 		)
+
+		sm := http.NewServeMux()
+		sm.Handle("/healthz", httpHealthz{})
+
+		t.(*cloudeventshttp.Transport).Handler = sm
 
 		if err != nil {
 			log.Error().
