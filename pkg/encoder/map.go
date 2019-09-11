@@ -2,6 +2,7 @@ package encoder
 
 import (
 	"context"
+	"time"
 
 	cloudevents "github.com/cloudevents/sdk-go"
 )
@@ -30,9 +31,9 @@ func (e Map) Encode(ctx context.Context, event cloudevents.Event) (interface{}, 
 		"id":          event.ID(),
 		"subject":     event.Subject(),
 		"source":      event.Source(),
-		"extensions":  event.Extensions(),
 		"type":        event.Type(),
-		"time":        event.Time().Unix(),
+		"time":        event.Time().Format(time.RFC3339),
+		"extensions":  event.Extensions(),
 		"data":        data,
 	}
 
