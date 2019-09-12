@@ -15,12 +15,13 @@ import (
 )
 
 type Singularity struct {
-	name       string
-	mutex      *sync.RWMutex
-	handlers   map[string]handler.Handler
-	validators map[string]validator.Validator
-	validation bool
-	metrics    *metricServer
+	name        string
+	mutex       *sync.RWMutex
+	handlers    map[string]handler.Handler
+	validators  map[string]validator.Validator
+	validation  bool
+	metrics     *metricServer
+	healthcheck *healthcheck
 }
 
 func (s *Singularity) handle(ctx context.Context, event cloudevents.Event) error {
