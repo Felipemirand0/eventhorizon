@@ -31,11 +31,12 @@ items:
       host: fluentd
       port: 24224
       network: tcp
-      timeout: 0s
-      writeTimeout: 3s
+      timeout: 3s
+      writeTimeout: 0s
       bufferLimit: 8192
       retryWait: 500
       maxRetryWait: 60000
+      maxRetry: 13
       async: false
       subSecondPrecision: false
       tagPrefix: ""
