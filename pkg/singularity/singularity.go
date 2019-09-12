@@ -53,7 +53,7 @@ func (s *Singularity) handle(ctx context.Context, event cloudevents.Event) error
 		if s.validation {
 			validator := s.findHandlerValidator(key)
 			if nil != validator {
-				err := validator.Validate(event)
+				err = validator.Validate(event)
 				if nil != err {
 					errs = append(errs, fmt.Errorf(`failing validator "%s" for handler "%s": %s`, validator.Name(), key, err.Error()))
 					continue
@@ -61,7 +61,7 @@ func (s *Singularity) handle(ctx context.Context, event cloudevents.Event) error
 			}
 		}
 
-		err := handler.Handle(ctx, event)
+		err = handler.Handle(ctx, event)
 		if nil != err {
 			errs = append(errs, fmt.Errorf(`failing handler "%s": %s`, key, err.Error()))
 		}
