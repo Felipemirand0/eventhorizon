@@ -37,9 +37,10 @@ items:
       retryWait: 500
       maxRetryWait: 60000
       maxRetry: 13
+      tagPrefix: ""
       async: false
       subSecondPrecision: false
-      tagPrefix: ""
+      requestAck: false
 
 - apiVersion: eventhorizon.acesso.io/v1alpha1
   kind: CloudEventHandler

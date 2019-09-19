@@ -13,6 +13,7 @@ spec:
     retryWait: 500
     maxRetryWait: 60000
     maxRetry: 13
+    tagPrefix: ""
     async: false
     subSecondPrecision: false
-    tagPrefix: ""
+    requestAck: false

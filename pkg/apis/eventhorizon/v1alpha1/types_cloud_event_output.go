@@ -34,6 +34,7 @@ type CloudEventOutputFluentd struct {
 	MaxRetry           int    `json:"maxRetry"`
 	Async              bool   `json:"async"`
 	SubSecondPrecision bool   `json:"subSecondPrecision"`
+	RequestAck         bool   `json:"requestAck"`
 	TagPrefix          string `json:"tagPrefix"`
 }
 

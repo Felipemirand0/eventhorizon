@@ -46,6 +46,7 @@ func (c *Controller) SyncCloudEventOutput(e *v1alpha1.CloudEventOutput) error {
 			TagPrefix:          e.Spec.Fluentd.TagPrefix,
 			Async:              e.Spec.Fluentd.Async,
 			SubSecondPrecision: e.Spec.Fluentd.SubSecondPrecision,
+			RequestAck:         e.Spec.Fluentd.RequestAck,
 		}
 
 		out, err = output.NewFluentd(fluentcfg)
