@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  fluentd:
+    image: fluent/fluentd:v1.5-1
+    command: [ "fluentd", "-c", "/fluentd/etc/default.conf" ]
+    volumes:
+    - ./samples/fluentd.conf:/fluentd/etc/default.conf
+    - fluentd-sock:/tmp
+    ports:
+    - 24224:24224
+    - "24224:24224/udp"
+
+  eventhorizon_out_stdout:
+    image: acesso/eventhorizon
+    command: [ "/opt/acesso/bin/eventhorizon" ]
+    environment:
+    - EVENTHORIZON_MODE=standalone
+    - EVENTHORIZON_NAME=eventhorizon
+    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/stdout.yml
+    ports:
+    - 1257:1257
+    - 1258:1258
+    restart: always
+
+  eventhorizon_out_fluentd_tcp:
+    image: acesso/eventhorizon
+    command: [ "/opt/acesso/bin/eventhorizon" ]
+    environment:
+    - EVENTHORIZON_MODE=standalone
+    - EVENTHORIZON_NAME=eventhorizon
+    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/fluentd-tcp.yml
+    ports:
+    - 1247:1257
+    - 1248:1258
+    depends_on:
+    - fluentd
+    restart: always
+
+  eventhorizon_out_fluentd_sock:
+    image: acesso/eventhorizon
+    command: [ "/opt/acesso/bin/eventhorizon" ]
+    user: "root:root"
+    environment:
+    - EVENTHORIZON_MODE=standalone
+    - EVENTHORIZON_NAME=eventhorizon
+    - EVENTHORIZON_STANDALONE_CONFIG=/opt/acesso/samples/standalone/fluentd-sock.yml
+    ports:
+    - 1237:1257
+    - 1238:1258
+    volumes:
+    - fluentd-sock:/tmp
+    depends_on:
+    - fluentd
+    restart: always
+
+volumes:
+  fluentd-sock:

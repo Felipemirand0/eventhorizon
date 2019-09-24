@@ -32,15 +32,15 @@ func (h *Basic) Handle(ctx context.Context, event cloudevents.Event) error {
 		}
 	}
 
-	if nil == h.output {
-		return nil
-	}
-
 	return h.output.Send(ctx, data)
 }
 
 func (r *Basic) Close() error {
 	return nil
+}
+
+func (r *Basic) Output() output.Output {
+	return r.output
 }
 
 func NewBasic(out output.Output, enc encoder.Encoder, lab map[string]string) (*Basic, error) {

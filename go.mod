@@ -7,7 +7,7 @@ require (
 	github.com/Azure/go-autorest/autorest v0.9.1 // indirect
 	github.com/Azure/go-autorest/autorest/adal v0.6.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
-	github.com/cloudevents/sdk-go v0.9.0
+	github.com/cloudevents/sdk-go v0.9.2
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/fluent/fluent-logger-golang v1.4.0
 	github.com/gogo/protobuf v1.3.0 // indirect

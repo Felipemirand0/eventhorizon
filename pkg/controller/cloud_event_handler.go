@@ -31,10 +31,7 @@ func (c *Controller) SyncCloudEventHandler(e *v1alpha1.CloudEventHandler) error 
 		enc = encoder.NewMap()
 	}
 
-	out = &outputWrapper{
-		reference:  e.Spec.Output,
-		controller: c,
-	}
+	out = newAsyncOutput(e.Spec.Output, c)
 
 	han, err = handler.NewBasic(out, enc, e.Spec.Labels)
 	if nil != err {

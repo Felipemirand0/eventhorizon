@@ -6,5 +6,5 @@ import (
 
 type Validator interface {
 	Name() string
-	Validate(cloudevents.Event) error
+	Match(cloudevents.Event) bool
 }

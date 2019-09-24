@@ -56,6 +56,10 @@ spec:
     metadata:
       labels:
         app: eventhorizon
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "1258"
+        prometheus.io/path: /metrics
     spec:
       serviceAccountName: eventhorizon
       securityContext:
@@ -63,7 +67,7 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
       containers:
-      - name: service
+      - name: eventhorizon
         image: acesso/eventhorizon
         command: [ "/opt/acesso/bin/eventhorizon" ]
         env:
@@ -74,6 +78,18 @@ spec:
         volumeMounts:
         - name: run
           mountPath: /opt/acesso/run
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 1257
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 1257
+          initialDelaySeconds: 5
+          periodSeconds: 3
       - name: fluentd
         image: fluent/fluentd:v1.7-1
         command: [ "fluentd", "-c", "/opt/acesso/config/fluentd.conf" ]

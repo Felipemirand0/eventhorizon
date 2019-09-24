@@ -12,3 +12,11 @@ var metricEventsProcessed = promauto.NewCounterVec(
 	},
 	[]string{"type"},
 )
+
+var metricEventsError = promauto.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "events_error_total",
+		Help: "The total number of failed events",
+	},
+	[]string{"error"},
+)

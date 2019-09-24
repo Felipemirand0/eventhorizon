@@ -14,6 +14,13 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+var (
+	defaultBacklogSize  int = 8192
+	defaultMaxRetry     int = 25
+	defaultRetryWait    int = 500
+	defaultMaxRetryWait int = 65000
+)
+
 func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 	key, err := cache.MetaNamespaceKeyFunc(e)
 	if nil != err {
@@ -37,6 +44,31 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 	if nil != e.Spec.Metrics {
 		opts = append(opts, singularity.EnableMetrics(e.Spec.Metrics.Path, e.Spec.Metrics.Port))
 	}
+
+	retryOpts := singularity.RetryOptions{
+		Backlog:      defaultBacklogSize,
+		MaxRetry:     defaultMaxRetry,
+		RetryWait:    defaultRetryWait,
+		MaxRetryWait: defaultMaxRetryWait,
+	}
+
+	if e.Spec.Backlog > 0 {
+		retryOpts.Backlog = e.Spec.Backlog
+	}
+
+	if e.Spec.MaxRetry > 0 {
+		retryOpts.MaxRetry = e.Spec.MaxRetry
+	}
+
+	if e.Spec.RetryWait > 0 {
+		retryOpts.RetryWait = e.Spec.RetryWait
+	}
+
+	if e.Spec.MaxRetryWait > 0 {
+		retryOpts.MaxRetryWait = e.Spec.MaxRetryWait
+	}
+
+	opts = append(opts, singularity.SetRetryOptions(retryOpts))
 
 	c.singularity, err = singularity.New(key, opts...)
 	if nil != err {
@@ -123,6 +155,8 @@ func (c *Controller) SyncSingularity(e *v1alpha1.Singularity) error {
 				Err(err).
 				Interface("recover", rec).
 				Msg("Stop client")
+
+			c.singularity.Close()
 		}()
 
 		log.Info().

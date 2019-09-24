@@ -16,9 +16,13 @@ type Singularity struct {
 }
 
 type SingularitySpec struct {
-	Transport  *Transport `json:"transport"`
-	Validation bool       `json:"validation"`
-	Metrics    *Metrics   `json:"metrics"`
+	Transport    *Transport `json:"transport"`
+	Validation   bool       `json:"validation"`
+	Metrics      *Metrics   `json:"metrics"`
+	Backlog      int        `json:"backlog"`
+	MaxRetry     int        `json:"maxRetry"`
+	RetryWait    int        `json:"retryWait"`
+	MaxRetryWait int        `json:"maxRetryWait"`
 }
 
 type Transport struct {

@@ -20,6 +20,10 @@ items:
       enabled: true
       path: /metrics
       port: 1258
+    backlog: 8192
+    maxRetry: 25
+    retryWait: 500
+    maxRetryWait: 65000
 
 - apiVersion: eventhorizon.acesso.io/v1alpha1
   kind: CloudEventOutput

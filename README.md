@@ -74,7 +74,7 @@ Basic comparison running on a MacBook Pro (Retina, 13-inch, Early 2015), 2,7 GHz
 Commands:
 
 ```shell
-$ docker-compose up
+$ docker-compose -f compose.bench.yml up
 
 $ fortio load \
     -c 4 -qps 50000 -t 30s -a -labels "eventhorizon stdout" \
@@ -87,7 +87,7 @@ $ fortio load \
     -H "Ce-Subject: MyMethod.MyAction" \
     -H "Ce-Time: 2019-08-20T22:18:27.166904Z" \
     -H "Ce-Type: io.request.rpc" \
-    http://localhost:1258
+    http://localhost:1257
 
 $ fortio load \
     -c 4 -qps 50000 -t 30s -a -labels "eventhorizon fluentd tcp" \
@@ -100,7 +100,7 @@ $ fortio load \
     -H "Ce-Subject: MyMethod.MyAction" \
     -H "Ce-Time: 2019-08-20T22:18:27.166904Z" \
     -H "Ce-Type: io.request.rpc" \
-    http://localhost:1259
+    http://localhost:1247
 
 $ fortio load \
     -c 4 -qps 50000 -t 30s -a -labels "eventhorizon fluentd sock" \
@@ -113,5 +113,5 @@ $ fortio load \
     -H "Ce-Subject: MyMethod.MyAction" \
     -H "Ce-Time: 2019-08-20T22:18:27.166904Z" \
     -H "Ce-Type: io.request.rpc" \
-    http://localhost:1260
+    http://localhost:1237
 ```

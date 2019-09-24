@@ -16,3 +16,7 @@ spec:
     enabled: true
     port: 1258
     path: /metrics
+  backlog: 8192
+  maxRetry: 25
+  retryWait: 500
+  maxRetryWait: 65000

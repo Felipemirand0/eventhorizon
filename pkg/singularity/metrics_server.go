@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	cloudevents "github.com/cloudevents/sdk-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -26,10 +25,6 @@ func (s *metricServer) Listen(ctx context.Context) error {
 	}
 
 	return err
-}
-
-func (s *metricServer) record(event cloudevents.Event, err error) {
-	metricEventsProcessed.WithLabelValues(event.Type()).Inc()
 }
 
 func newMetricsServer(path string, port int) *metricServer {

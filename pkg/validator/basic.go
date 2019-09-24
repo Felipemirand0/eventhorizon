@@ -19,9 +19,9 @@ func (v Basic) Name() string {
 	return v.entity.Name
 }
 
-func (v Basic) Validate(event cloudevents.Event) error {
+func (v Basic) Match(event cloudevents.Event) bool {
 	// newEvent := cloudevents.NewEvent()
 	// *event = newEvent
 
-	return nil
+	return true
 }
