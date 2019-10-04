@@ -11,13 +11,12 @@ require (
 	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
 	github.com/fluent/fluent-logger-golang v1.4.0
 	github.com/gogo/protobuf v1.3.0 // indirect
-	github.com/google/btree v1.0.0 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/googleapis/gnostic v0.3.1 // indirect
 	github.com/gophercloud/gophercloud v0.4.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
-	github.com/nats-io/nats-streaming-server v0.16.0 // indirect
+	github.com/nats-io/nats-server/v2 v2.0.4 // indirect
 	github.com/onsi/ginkgo v1.10.1 // indirect
 	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
