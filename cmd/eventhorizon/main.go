@@ -26,9 +26,10 @@ import (
 )
 
 type conf struct {
-	Mode       string `envconfig:"default=kubernetes"`
-	Name       string `envconfig:"default=kube-system/eventhorizon"`
-	Standalone struct {
+	Mode        string `envconfig:"default=kubernetes"`
+	Name        string `envconfig:"default=kube-system/eventhorizon"`
+	Threadiness int    `envconfig:"default=1"`
+	Standalone  struct {
 		Config string `envconfig:"default=/opt/acesso/samples/standalone/stdout.yml"`
 	}
 	Kubernetes struct {
@@ -76,7 +77,7 @@ func kubernetes() {
 
 	informerFactory := informers.NewSharedInformerFactory(client, time.Second*30)
 
-	c := controller.NewKubernetes(env.Name, 2, client, informerFactory.Eventhorizon())
+	c := controller.NewKubernetes(env.Name, env.Threadiness, client, informerFactory.Eventhorizon())
 
 	informerFactory.Start(stopCh)
 

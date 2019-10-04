@@ -176,7 +176,7 @@ func (c *Controller) Run(stopCh <-chan struct{}) error {
 
 	klog.Info("Start workers")
 
-	for i := 0; i < c.threadiness; i++ {
+	for i := 1; i <= c.threadiness; i++ {
 		go wait.Until(c.runWorker, time.Second, stopCh)
 	}
 
