@@ -4,13 +4,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-
-	eventhorizon "acesso.io/eventhorizon/pkg/apis/eventhorizon"
 )
 
 // SchemeGroupVersion is group version used to register these objects
 var SchemeGroupVersion = schema.GroupVersion{
-	Group:   eventhorizon.GroupName,
+	Group:   "eventhorizon.acesso.io",
 	Version: "v1alpha1",
 }
 
