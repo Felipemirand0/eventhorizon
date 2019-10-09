@@ -34,7 +34,7 @@ func (o *asyncOutput) Close() error {
 	return o.output.Close()
 }
 
-func (o *asyncOutput) Ref() string {
+func (o *asyncOutput) Reference() string {
 	return o.reference
 }
 

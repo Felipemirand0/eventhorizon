@@ -146,7 +146,7 @@ func (s *Singularity) deliver(handlerkey string, h handler.Handler, msg message)
 			Str("source", msg.event.Source()).
 			Str("subject", msg.event.Subject()).
 			Str("handler", handlerkey).
-			Str("output", h.Output().(asyncOutput).Ref()).
+			Str("output", h.Output().(asyncOutput).Reference()).
 			Time("time", msg.event.Time()).
 			Msg("Event handler deliver")
 	}()

@@ -1,5 +1,5 @@
 package singularity
 
 type asyncOutput interface {
-	Ref() string
+	Reference() string
 }
