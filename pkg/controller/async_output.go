@@ -46,19 +46,15 @@ func (o *asyncOutput) watch() {
 			break
 		}
 
-		var tmp output.Output
-
-		if nil != o.controller.outputs[o.reference] {
-			tmp = o.controller.outputs[o.reference]
+		if nil != o.output {
+			break
 		}
 
-		if nil == tmp {
+		if nil == o.controller.outputs[o.reference] {
 			continue
 		}
 
-		if nil == o.output {
-			o.output = tmp
-		}
+		o.output = o.controller.outputs[o.reference]
 
 		break
 	}
