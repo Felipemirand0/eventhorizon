@@ -186,8 +186,6 @@ func standalone() {
 			Msg("Failing resource `CloudEventValidator`")
 	}
 
-	c.Resync()
-
 	if err = c.Run(stopCh); err != nil {
 		klog.Fatalf("Error running controller: %s", err.Error())
 	}

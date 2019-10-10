@@ -61,7 +61,7 @@ func (c *Controller) SyncCloudEventHandler(e *v1alpha1.CloudEventHandler) error 
 			break
 		}
 
-		c.singularity.SetOption(singularity.SetHandler(key, handler))
+		c.singularity.SetOption(singularity.SetHandler(key, han))
 	}()
 
 	log.Info().
