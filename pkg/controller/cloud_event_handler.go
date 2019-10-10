@@ -7,6 +7,7 @@ import (
 	"acesso.io/eventhorizon/pkg/handler"
 	. "acesso.io/eventhorizon/pkg/helpers"
 	"acesso.io/eventhorizon/pkg/output"
+	"acesso.io/eventhorizon/pkg/singularity"
 
 	"github.com/rs/zerolog/log"
 	"k8s.io/client-go/tools/cache"
@@ -49,6 +50,18 @@ func (c *Controller) SyncCloudEventHandler(e *v1alpha1.CloudEventHandler) error 
 	go func() {
 		<-c.context.Done()
 		han.Close()
+	}()
+
+	go func() {
+		for {
+			if nil == c.singularity {
+				continue
+			}
+
+			break
+		}
+
+		c.singularity.SetOption(singularity.SetHandler(key, handler))
 	}()
 
 	log.Info().

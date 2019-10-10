@@ -298,19 +298,7 @@ func (c *Controller) processNextWorkItem() bool {
 		return false
 	}
 
-	c.Resync()
-
 	return true
-}
-
-func (c *Controller) Resync() {
-	if nil == c.singularity || 0 == len(c.handlers) {
-		return
-	}
-
-	for key, handler := range c.handlers {
-		c.singularity.SetOption(singularity.SetHandler(key, handler))
-	}
 }
 
 func (c *Controller) enqueue(obj interface{}) {
