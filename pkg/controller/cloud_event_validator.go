@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha1"
+	. "acesso.io/eventhorizon/pkg/errors"
 	"acesso.io/eventhorizon/pkg/validator"
 
 	"github.com/rs/zerolog/log"
@@ -14,6 +15,10 @@ func (c *Controller) SyncCloudEventValidator(e *v1alpha1.CloudEventValidator) er
 	key, err := cache.MetaNamespaceKeyFunc(e)
 	if nil != err {
 		return err
+	}
+
+	if nil != c.validators[key] {
+		return ErrAlreadyRunning
 	}
 
 	var val validator.Validator

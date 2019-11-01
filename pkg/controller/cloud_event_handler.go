@@ -23,6 +23,10 @@ func (c *Controller) SyncCloudEventHandler(e *v1alpha1.CloudEventHandler) error 
 		return err
 	}
 
+	if nil != c.handlers[key] {
+		return ErrAlreadyRunning
+	}
+
 	var han handler.Handler
 	var enc encoder.Encoder
 	var out output.Output

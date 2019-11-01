@@ -18,6 +18,10 @@ func (c *Controller) SyncCloudEventOutput(e *v1alpha1.CloudEventOutput) error {
 		return err
 	}
 
+	if nil != c.outputs[key] {
+		return ErrAlreadyRunning
+	}
+
 	var out output.Output
 
 	switch e.Spec.Type {

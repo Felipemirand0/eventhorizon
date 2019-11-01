@@ -280,6 +280,11 @@ func (c *Controller) processNextWorkItem() bool {
 			return nil
 		}
 
+		if ErrAlreadyRunning == err {
+			c.workqueue.Forget(key)
+			return nil
+		}
+
 		if nil != err {
 			c.workqueue.AddRateLimited(key)
 
