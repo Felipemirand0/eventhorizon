@@ -26,7 +26,7 @@ echo "Temporary output directory: ${OUTPUT_BASE_DIR}"
 
 bash "${CODEGEN_PKG}/generate-groups.sh" all \
   acesso.io/eventhorizon/pkg/generated acesso.io/eventhorizon/pkg/apis \
-  "eventhorizon:v1alpha1" \
+  "eventhorizon:v1alpha2" \
   --output-base "${OUTPUT_BASE_DIR}" \
   --go-header-file ${PROJECT_ROOT}/hack/boilerplate.go.txt
 

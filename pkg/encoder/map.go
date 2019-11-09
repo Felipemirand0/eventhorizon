@@ -7,8 +7,8 @@ import (
 	cloudevents "github.com/cloudevents/sdk-go"
 )
 
-func NewMap() Encoder {
-	return &Map{}
+func NewMap() (Encoder, error) {
+	return &Map{}, nil
 }
 
 type Map struct {

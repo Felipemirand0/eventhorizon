@@ -1,35 +1,27 @@
-apiVersion: v1
-kind: List
-items:
-
-- apiVersion: eventhorizon.acesso.io/v1alpha1
-  kind: Singularity
-  metadata:
-    name: eventhorizon
-  spec:
-    transport:
-      name: http
-      http:
-        port: 1257
-        useStatusCodeOK: true # force success response code to be 200 (fortio benchmark only understands HTTP 200)
-      # nats:
-      #   server: http://localhost:4222
-      #   subject: eventhorizon
-    validation: true
-    metrics:
-      enabled: true
-      path: /metrics
-      port: 1258
+apiVersion: eventhorizon.acesso.io/v1alpha2
+kind: EventHorizon
+metadata:
+  name: eventhorizon
+spec:
+  labels:
+    field1: value1
+    field2: value2
+  queue:
     backlog: 8192
     maxRetry: 25
     retryWait: 500
     maxRetryWait: 65000
-
-- apiVersion: eventhorizon.acesso.io/v1alpha1
-  kind: CloudEventOutput
-  metadata:
-    name: fluentd
-  spec:
+  metrics:
+    port: 1258
+    path: /metrics
+  transport:
+    type: http
+    http:
+      port: 1257
+      useStatusCodeOK: true
+  encoder:
+    type: map
+  output:
     type: fluentd
     fluentd:
       host: fluentd
@@ -45,32 +37,11 @@ items:
       async: false
       subSecondPrecision: false
       requestAck: false
-
-- apiVersion: eventhorizon.acesso.io/v1alpha1
-  kind: CloudEventHandler
-  metadata:
-    name: default
-  spec:
-    subjects:
-    - eventhorizon
-    labels:
-      field1: value1
-      field2: value2
-    encoder: map
-    output: fluentd
-
-- apiVersion: eventhorizon.acesso.io/v1alpha1
-  kind: CloudEventValidator
-  metadata:
-    name: default
-  spec:
-    handlers:
-    - default
-    priority: -1
-    allowedTypes:
-    - io.request.grpc
-    - io.request.rpc
-    - io.request.http
-    - io.event.consumer
-    - io.event.producer
-    allowedSources: []
+  # validator:
+  #   allowedTypes:
+  #   - io.request.grpc
+  #   - io.request.rpc
+  #   - io.request.http
+  #   - io.event.consumer
+  #   - io.event.producer
+  #   allowedSources: []

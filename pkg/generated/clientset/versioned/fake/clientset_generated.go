@@ -20,8 +20,8 @@ package fake
 
 import (
 	clientset "acesso.io/eventhorizon/pkg/generated/clientset/versioned"
-	eventhorizonv1alpha1 "acesso.io/eventhorizon/pkg/generated/clientset/versioned/typed/eventhorizon/v1alpha1"
-	fakeeventhorizonv1alpha1 "acesso.io/eventhorizon/pkg/generated/clientset/versioned/typed/eventhorizon/v1alpha1/fake"
+	eventhorizonv1alpha2 "acesso.io/eventhorizon/pkg/generated/clientset/versioned/typed/eventhorizon/v1alpha2"
+	fakeeventhorizonv1alpha2 "acesso.io/eventhorizon/pkg/generated/clientset/versioned/typed/eventhorizon/v1alpha2/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -76,7 +76,7 @@ func (c *Clientset) Tracker() testing.ObjectTracker {
 
 var _ clientset.Interface = &Clientset{}
 
-// EventhorizonV1alpha1 retrieves the EventhorizonV1alpha1Client
-func (c *Clientset) EventhorizonV1alpha1() eventhorizonv1alpha1.EventhorizonV1alpha1Interface {
-	return &fakeeventhorizonv1alpha1.FakeEventhorizonV1alpha1{Fake: &c.Fake}
+// EventhorizonV1alpha2 retrieves the EventhorizonV1alpha2Client
+func (c *Clientset) EventhorizonV1alpha2() eventhorizonv1alpha2.EventhorizonV1alpha2Interface {
+	return &fakeeventhorizonv1alpha2.FakeEventhorizonV1alpha2{Fake: &c.Fake}
 }

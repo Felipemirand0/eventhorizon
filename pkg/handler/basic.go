@@ -43,11 +43,11 @@ func (r *Basic) Output() output.Output {
 	return r.output
 }
 
-func NewBasic(out output.Output, enc encoder.Encoder, lab map[string]string) (*Basic, error) {
+func NewBasic(out output.Output, enc encoder.Encoder, labels map[string]string) (*Basic, error) {
 	h := Basic{
 		output:  out,
 		encoder: enc,
-		labels:  lab,
+		labels:  labels,
 	}
 
 	return &h, nil

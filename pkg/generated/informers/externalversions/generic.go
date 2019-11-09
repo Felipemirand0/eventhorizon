@@ -21,7 +21,7 @@ package externalversions
 import (
 	"fmt"
 
-	v1alpha1 "acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha1"
+	v1alpha2 "acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha2"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
 )
@@ -52,15 +52,9 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=eventhorizon.acesso.io, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithResource("cloudeventhandlers"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Eventhorizon().V1alpha1().CloudEventHandlers().Informer()}, nil
-	case v1alpha1.SchemeGroupVersion.WithResource("cloudeventoutputs"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Eventhorizon().V1alpha1().CloudEventOutputs().Informer()}, nil
-	case v1alpha1.SchemeGroupVersion.WithResource("cloudeventvalidators"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Eventhorizon().V1alpha1().CloudEventValidators().Informer()}, nil
-	case v1alpha1.SchemeGroupVersion.WithResource("singularities"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Eventhorizon().V1alpha1().Singularities().Informer()}, nil
+	// Group=eventhorizon.acesso.io, Version=v1alpha2
+	case v1alpha2.SchemeGroupVersion.WithResource("eventhorizons"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Eventhorizon().V1alpha2().EventHorizons().Informer()}, nil
 
 	}
 

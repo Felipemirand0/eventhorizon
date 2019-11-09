@@ -1,27 +1,22 @@
 package validator
 
 import (
-	"acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha1"
+	"acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha2"
 	cloudevents "github.com/cloudevents/sdk-go"
 )
 
-func NewBasic(e *v1alpha1.CloudEventValidator) Validator {
+func NewBasic(e v1alpha2.Validator) (Validator, error) {
 	return &Basic{
-		entity: e,
-	}
+		allowedTypes:   e.AllowedTypes,
+		allowedSources: e.AllowedSources,
+	}, nil
 }
 
 type Basic struct {
-	entity *v1alpha1.CloudEventValidator
-}
-
-func (v Basic) Name() string {
-	return v.entity.Name
+	allowedTypes   []string
+	allowedSources []string
 }
 
 func (v Basic) Match(event cloudevents.Event) bool {
-	// newEvent := cloudevents.NewEvent()
-	// *event = newEvent
-
 	return true
 }

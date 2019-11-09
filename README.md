@@ -1,15 +1,10 @@
 # EventHorizon
 
-An open source [CloudEvents](https://cloudevents.io) implementation to allow handling a massive number of events.
+The point of no return for your events. EventHorizon is an open source [CloudEvents](https://cloudevents.io) implementation to allow handling massive number of events.
 
 ## Introduction
 
-EventHorizon provides a uniform way for handling events ([CloudEvents](https://cloudevents.io)) in a Kubernetes native way, by implementing the following resources:
-
-- **[Singularity](samples/kubernetes/Singularity.yml)** - describes the instance itself, the transport method (currently supports HTTP or NATS).
-- **[CloudEventHandler](samples/kubernetes/CloudEventHandler.yml)** - describes event handler itself, the encoder and the output.
-- **[CloudEventValidator](samples/kubernetes/CloudEventValidator.yml)** - an optional validator, in case you want to enforce specific events.
-- **[CloudEventOutput](samples/kubernetes/CloudEventOutput.yml)** - describes where to send the event output to (currently supports Fluentd).
+EventHorizon provides a uniform way for handling events ([CloudEvents](https://cloudevents.io)) in a Kubernetes native way, by implementing a Custom Resource Definition. Example: **[samples/kubernetes/EventHorizon.yml](samples/kubernetes/EventHorizon.yml)**.
 
 ## Current status
 
@@ -31,6 +26,12 @@ Install the demo app:
 
 ```shell
 kubectl apply -f install/kubernetes/demo.yml
+```
+
+Apply the sample resource:
+
+```shell
+kubectl apply -f samples/kubernetes/EventHorizon.yml
 ```
 
 ### Standalone

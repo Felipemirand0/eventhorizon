@@ -38,7 +38,15 @@ func NewFluentd(cfg fluent.Config) (*Fluentd, error) {
 
 	o := Fluentd{}
 
-	waitForFluentd(cfg)
+	err = waitForFluentd(cfg)
+	if nil != err {
+		log.WithLevel(zerolog.WarnLevel).
+			Err(err).
+			Str("output", "fluentd").
+			Msg("failed to connect")
+
+		return nil, err
+	}
 
 	o.cli, err = fluent.New(cfg)
 	if err != nil {

@@ -5,6 +5,5 @@ import (
 )
 
 type Validator interface {
-	Name() string
 	Match(cloudevents.Event) bool
 }

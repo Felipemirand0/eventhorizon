@@ -1,6 +1,7 @@
 apiVersion: eventhorizon.acesso.io/v1alpha2
 kind: EventHorizon
 metadata:
+  namespace: kube-system
   name: eventhorizon
 spec:
   labels:
@@ -18,13 +19,13 @@ spec:
     type: http
     http:
       port: 1257
-      useStatusCodeOK: true
+      useStatusCodeOK: false
   encoder:
     type: map
   output:
     type: fluentd
     fluentd:
-      socketPath: /tmp/fluentd.sock
+      socketPath: /opt/acesso/run/fluentd.sock
       network: unix
       timeout: 3s
       writeTimeout: 0s
@@ -36,11 +37,11 @@ spec:
       async: false
       subSecondPrecision: false
       requestAck: false
-  # validator:
-  #   allowedTypes:
-  #   - io.request.grpc
-  #   - io.request.rpc
-  #   - io.request.http
-  #   - io.event.consumer
-  #   - io.event.producer
-  #   allowedSources: []
+  validator:
+    allowedTypes:
+    - io.request.grpc
+    - io.request.rpc
+    - io.request.http
+    - io.event.consumer
+    - io.event.producer
+    allowedSources: []

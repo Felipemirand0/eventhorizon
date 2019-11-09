@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha1"
+	"acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha2"
 	"acesso.io/eventhorizon/pkg/controller"
 	clientset "acesso.io/eventhorizon/pkg/generated/clientset/versioned"
 	acessoschema "acesso.io/eventhorizon/pkg/generated/clientset/versioned/scheme"
@@ -16,7 +16,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/vrischmann/envconfig"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
@@ -93,8 +92,6 @@ func standalone() {
 
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 
-	var list *v1.List
-
 	data, err := ioutil.ReadFile(env.Standalone.Config)
 	if nil != err {
 		log.Fatal().
@@ -111,79 +108,28 @@ func standalone() {
 			Msg("Decoding configuration file")
 	}
 
+	var resource *v1alpha2.EventHorizon
+
 	switch obj.(type) {
-	case *v1.List:
-		list = obj.(*v1.List)
+	case *v1alpha2.EventHorizon:
+		resource = obj.(*v1alpha2.EventHorizon)
 
 	default:
 		log.Fatal().
-			Msg("Configuration resource file must be of kind `List`")
-	}
-
-	var (
-		singularity         *v1alpha1.Singularity
-		cloudEventOutput    *v1alpha1.CloudEventOutput
-		cloudEventHandler   *v1alpha1.CloudEventHandler
-		cloudEventValidator *v1alpha1.CloudEventValidator
-	)
-
-	for _, item := range list.Items {
-		obj, _, err := decode(item.Raw, nil, nil)
-		if err != nil {
-			log.Fatal().
-				Err(err).
-				Msg("Decoding configuration file")
-		}
-
-		switch e := obj.(type) {
-		case *v1alpha1.Singularity:
-			singularity = e
-
-		case *v1alpha1.CloudEventOutput:
-			cloudEventOutput = e
-
-		case *v1alpha1.CloudEventHandler:
-			cloudEventHandler = e
-
-		case *v1alpha1.CloudEventValidator:
-			cloudEventValidator = e
-		}
+			Msg("Configuration resource file must be of kind `EventHorizon`")
 	}
 
 	c := controller.NewStandalone(env.Name)
 
-	err = c.SyncSingularity(singularity)
+	err = c.SyncEventHorizon(resource)
 	if nil != err {
-		resource, _ := cache.MetaNamespaceKeyFunc(singularity)
+		key, _ := cache.MetaNamespaceKeyFunc(resource)
 
 		log.Fatal().
 			Err(err).
-			Str("singularity", env.Name).
-			Str("resource", resource).
-			Msg("Failing resource `Singularity`")
-	}
-
-	err = c.SyncCloudEventHandler(cloudEventHandler)
-	if nil != err {
-		log.Fatal().
-			Err(err).
-			Str("singularity", env.Name).
-			Strs("subjects", cloudEventHandler.Spec.Subjects).
-			Msg("Failing resource `CloudEventHandler`")
-	}
-
-	err = c.SyncCloudEventOutput(cloudEventOutput)
-	if nil != err {
-		log.Fatal().
-			Err(err).
-			Msg("Failing resource `CloudEventOutput`")
-	}
-
-	err = c.SyncCloudEventValidator(cloudEventValidator)
-	if nil != err {
-		log.Fatal().
-			Err(err).
-			Msg("Failing resource `CloudEventValidator`")
+			Str("name", env.Name).
+			Str("key", key).
+			Msg("Failing resource to load")
 	}
 
 	if err = c.Run(stopCh); err != nil {

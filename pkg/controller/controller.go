@@ -2,21 +2,16 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
-	"acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha1"
 	. "acesso.io/eventhorizon/pkg/errors"
+	"acesso.io/eventhorizon/pkg/eventhorizon"
 	clientset "acesso.io/eventhorizon/pkg/generated/clientset/versioned"
 	acessoscheme "acesso.io/eventhorizon/pkg/generated/clientset/versioned/scheme"
-	eventhorizon "acesso.io/eventhorizon/pkg/generated/informers/externalversions/eventhorizon"
-	listers "acesso.io/eventhorizon/pkg/generated/listers/eventhorizon/v1alpha1"
-	"acesso.io/eventhorizon/pkg/handler"
+	informers "acesso.io/eventhorizon/pkg/generated/informers/externalversions/eventhorizon"
+	listers "acesso.io/eventhorizon/pkg/generated/listers/eventhorizon/v1alpha2"
 	. "acesso.io/eventhorizon/pkg/helpers"
-	"acesso.io/eventhorizon/pkg/output"
-	"acesso.io/eventhorizon/pkg/singularity"
-	"acesso.io/eventhorizon/pkg/validator"
 
 	"github.com/rs/zerolog/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,51 +24,31 @@ import (
 )
 
 type Controller struct {
-	name        string
-	client      clientset.Interface
-	workqueue   workqueue.RateLimitingInterface
-	singularity *singularity.Singularity
-	handlers    map[string]handler.Handler
-	outputs     map[string]output.Output
-	validators  map[string]validator.Validator
-	context     context.Context
-	cancel      context.CancelFunc
-	mutex       *sync.RWMutex
-	threadiness int
-
-	// kind: Singularity
-	singularityLister listers.SingularityLister
-	singularitySynced cache.InformerSynced
-
-	// kind: CloudEventOutput
-	cloudeventoutputLister listers.CloudEventOutputLister
-	cloudeventoutputSynced cache.InformerSynced
-
-	// kind: CloudEventHandler
-	cloudeventhandlerLister listers.CloudEventHandlerLister
-	cloudeventhandlerSynced cache.InformerSynced
-
-	// kind: CloudEventValidator
-	cloudeventvalidatorLister listers.CloudEventValidatorLister
-	cloudeventvalidatorSynced cache.InformerSynced
+	name         string
+	client       clientset.Interface
+	workqueue    workqueue.RateLimitingInterface
+	eventhorizon *eventhorizon.EventHorizon
+	context      context.Context
+	cancel       context.CancelFunc
+	mutex        *sync.RWMutex
+	threadiness  int
+	lister       listers.EventHorizonLister
+	synced       cache.InformerSynced
 }
 
 func NewStandalone(name string) *Controller {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	return &Controller{
-		name:       name,
-		workqueue:  workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "EventHorizon"),
-		handlers:   map[string]handler.Handler{},
-		outputs:    map[string]output.Output{},
-		validators: map[string]validator.Validator{},
-		context:    ctx,
-		cancel:     cancel,
-		mutex:      &sync.RWMutex{},
+		name:      name,
+		workqueue: workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "EventHorizon"),
+		context:   ctx,
+		cancel:    cancel,
+		mutex:     &sync.RWMutex{},
 	}
 }
 
-func NewKubernetes(name string, threadiness int, client clientset.Interface, eventhorizon eventhorizon.Interface) *Controller {
+func NewKubernetes(name string, threadiness int, client clientset.Interface, informer informers.Interface) *Controller {
 	utilruntime.Must(acessoscheme.AddToScheme(scheme.Scheme))
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -82,56 +57,19 @@ func NewKubernetes(name string, threadiness int, client clientset.Interface, eve
 		name:        name,
 		client:      client,
 		workqueue:   workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "EventHorizon"),
-		handlers:    map[string]handler.Handler{},
-		outputs:     map[string]output.Output{},
-		validators:  map[string]validator.Validator{},
 		context:     ctx,
 		cancel:      cancel,
 		mutex:       &sync.RWMutex{},
 		threadiness: threadiness,
-
-		singularityLister: eventhorizon.V1alpha1().Singularities().Lister(),
-		singularitySynced: eventhorizon.V1alpha1().Singularities().Informer().HasSynced,
-
-		cloudeventoutputLister: eventhorizon.V1alpha1().CloudEventOutputs().Lister(),
-		cloudeventoutputSynced: eventhorizon.V1alpha1().CloudEventOutputs().Informer().HasSynced,
-
-		cloudeventhandlerLister: eventhorizon.V1alpha1().CloudEventHandlers().Lister(),
-		cloudeventhandlerSynced: eventhorizon.V1alpha1().CloudEventHandlers().Informer().HasSynced,
-
-		cloudeventvalidatorLister: eventhorizon.V1alpha1().CloudEventValidators().Lister(),
-		cloudeventvalidatorSynced: eventhorizon.V1alpha1().CloudEventValidators().Informer().HasSynced,
+		lister:      informer.V1alpha2().EventHorizons().Lister(),
+		synced:      informer.V1alpha2().EventHorizons().Informer().HasSynced,
 	}
 
 	klog.Info("Setting up event handlers")
 
-	eventhorizon.
-		V1alpha1().
-		Singularities().
-		Informer().
-		AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: controller.enqueue,
-		})
-
-	eventhorizon.
-		V1alpha1().
-		CloudEventOutputs().
-		Informer().
-		AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: controller.enqueue,
-		})
-
-	eventhorizon.
-		V1alpha1().
-		CloudEventHandlers().
-		Informer().
-		AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: controller.enqueue,
-		})
-
-	eventhorizon.
-		V1alpha1().
-		CloudEventValidators().
+	informer.
+		V1alpha2().
+		EventHorizons().
 		Informer().
 		AddEventHandler(cache.ResourceEventHandlerFuncs{
 			AddFunc: controller.enqueue,
@@ -143,31 +81,29 @@ func NewKubernetes(name string, threadiness int, client clientset.Interface, eve
 func (c *Controller) Run(stopCh <-chan struct{}) error {
 	log.Info().
 		Str("name", c.name).
-		Msg("Create black hole singularity")
-
-	klog.Info("Start controller")
-
-	defer utilruntime.HandleCrash()
+		Msg("Starting instance")
 
 	defer func() {
 		<-c.context.Done()
 
-		time.Sleep(3 * time.Second)
-
 		log.Info().
 			Str("name", c.name).
-			Msg("Evaporating black hole singularity")
+			Msg("Stopping instance")
 
+		if nil != c.eventhorizon {
+			c.eventhorizon.Close()
+		}
+
+		klog.Info("Shut down workers")
 		c.workqueue.ShutDown()
 	}()
+
+	defer utilruntime.HandleCrash()
 
 	klog.Info("Wait for informer caches to sync")
 
 	synceds := ValidSynced([]cache.InformerSynced{
-		c.singularitySynced,
-		c.cloudeventoutputSynced,
-		c.cloudeventhandlerSynced,
-		c.cloudeventvalidatorSynced,
+		c.synced,
 	})
 
 	if ok := cache.WaitForCacheSync(stopCh, synceds...); !ok {
@@ -180,11 +116,26 @@ func (c *Controller) Run(stopCh <-chan struct{}) error {
 		go wait.Until(c.runWorker, time.Second, stopCh)
 	}
 
+	go func() {
+		// wait for EventHorizon
+		for {
+			if nil != c.context.Err() {
+				return
+			}
+
+			if nil != c.eventhorizon {
+				break
+			}
+		}
+
+		// start it
+		c.eventhorizon.Start() // this is a blocking call
+
+		c.cancel()
+	}()
+
 	<-stopCh
-
 	c.cancel()
-
-	klog.Info("Shut down workers")
 
 	return nil
 }
@@ -207,99 +158,52 @@ func (c *Controller) processNextWorkItem() bool {
 		key, ok := obj.(string)
 		if !ok {
 			c.workqueue.Forget(obj)
-			utilruntime.HandleError(fmt.Errorf("expected string in workqueue but got %#v", obj))
-
 			return nil
 		}
 
-		kind, namespace, name := ParseKey(key)
+		namespace, name, err := cache.SplitMetaNamespaceKey(key)
+		if nil != err {
+			return err
+		}
 
-		var err error
-
-		switch kind {
-		case "singularity":
-			e, err := c.client.
-				EventhorizonV1alpha1().
-				Singularities(namespace).
-				Get(name, metav1.GetOptions{})
-			if nil != err {
-				return err
-			}
-
-			err = c.SyncSingularity(e)
-			if ErrNameMismatch == err {
-				c.workqueue.Forget(key)
-				klog.Errorf("current singularity name '%s' mismatch resource '%s/%s', skipping", c.name, namespace, name)
-
-				return nil
-			}
-
-		case "cloudeventoutput":
-			e, err := c.client.
-				EventhorizonV1alpha1().
-				CloudEventOutputs().
-				Get(name, metav1.GetOptions{})
-			if nil != err {
-				return err
-			}
-
-			err = c.SyncCloudEventOutput(e)
-
-		case "cloudeventhandler":
-			e, err := c.client.
-				EventhorizonV1alpha1().
-				CloudEventHandlers().
-				Get(name, metav1.GetOptions{})
-			if nil != err {
-				return err
-			}
-
-			err = c.SyncCloudEventHandler(e)
-			if ErrNoMatchingSubject == err {
-				c.workqueue.Forget(key)
-				klog.Errorf("no registered instance for the handler '%s', skipping", name)
-
-				return nil
-			}
-
-		case "cloudeventvalidator":
-			e, err := c.client.
-				EventhorizonV1alpha1().
-				CloudEventValidators().
-				Get(name, metav1.GetOptions{})
-			if nil != err {
-				return err
-			}
-
-			err = c.SyncCloudEventValidator(e)
-
-		default:
+		if nil != c.eventhorizon {
 			c.workqueue.Forget(key)
-			klog.Errorf("not a monitored resource '%s', skipping", key)
-
+			klog.Errorf("Service already initiated, live reload not implemented, skipping resource '%s'.", key)
 			return nil
 		}
 
-		if ErrAlreadyRunning == err {
+		e, err := c.client.
+			EventhorizonV1alpha2().
+			EventHorizons(namespace).
+			Get(name, metav1.GetOptions{})
+
+		if nil != err {
+			klog.Errorf("Failed loading resource '%s', skipping", key)
+			c.workqueue.Forget(key)
+			return err
+		}
+
+		err = c.SyncEventHorizon(e)
+
+		if ErrNameMismatch == err {
+			klog.Errorf("Mismatch instance name (%s) with resource name (%s), skipping", c.name, key)
 			c.workqueue.Forget(key)
 			return nil
 		}
 
 		if nil != err {
+			klog.Errorf("Unable to sync resource '%s', retrying", key)
 			c.workqueue.AddRateLimited(key)
-
-			return err
+			return nil
 		}
 
+		klog.Infof("Successfully synced resource '%s'", key)
 		c.workqueue.Forget(key)
-		klog.Infof("Successfully synced '%s'", key)
-
 		return nil
 	}(obj)
 
 	if nil != err {
 		utilruntime.HandleError(err)
-
 		return false
 	}
 
@@ -310,22 +214,7 @@ func (c *Controller) enqueue(obj interface{}) {
 	key, err := cache.MetaNamespaceKeyFunc(obj)
 	if nil != err {
 		utilruntime.HandleError(err)
-
 		return
-	}
-
-	switch obj.(type) {
-	case *v1alpha1.Singularity:
-		key = fmt.Sprintf(`%s#%s`, "singularity", key)
-
-	case *v1alpha1.CloudEventOutput:
-		key = fmt.Sprintf(`%s#%s`, "cloudeventoutput", key)
-
-	case *v1alpha1.CloudEventHandler:
-		key = fmt.Sprintf(`%s#%s`, "cloudeventhandler", key)
-
-	case *v1alpha1.CloudEventValidator:
-		key = fmt.Sprintf(`%s#%s`, "cloudeventvalidator", key)
 	}
 
 	c.workqueue.Add(key)
