@@ -33,34 +33,34 @@ var defaultEncoder = v1alpha2.Encoder{
 	Type: "map",
 }
 
-func (c *Controller) SyncEventHorizon(e *v1alpha2.EventHorizon) error {
-	key, err := cache.MetaNamespaceKeyFunc(e)
+func (c *Controller) syncEventHorizon(r *v1alpha2.EventHorizon) (*eventhorizon.EventHorizon, error) {
+	key, err := cache.MetaNamespaceKeyFunc(r)
 	if nil != err {
-		return err
+		return nil, err
 	}
 
 	if key != c.name {
-		return ErrNameMismatch
+		return nil, ErrNameMismatch
 	}
 
 	que := defaultQueue
-	if nil != e.Spec.Queue {
-		que = *e.Spec.Queue
+	if nil != r.Spec.Queue {
+		que = *r.Spec.Queue
 	}
 
 	tra := defaultTranport
-	if nil != e.Spec.Transport {
-		tra = *e.Spec.Transport
+	if nil != r.Spec.Transport {
+		tra = *r.Spec.Transport
 	}
 
 	enc := defaultEncoder
-	if nil != e.Spec.Encoder {
-		enc = *e.Spec.Encoder
+	if nil != r.Spec.Encoder {
+		enc = *r.Spec.Encoder
 	}
 
 	out := defaultOutput
-	if nil != e.Spec.Output {
-		out = *e.Spec.Output
+	if nil != r.Spec.Output {
+		out = *r.Spec.Output
 	}
 
 	opts := []eventhorizon.Option{
@@ -70,35 +70,35 @@ func (c *Controller) SyncEventHorizon(e *v1alpha2.EventHorizon) error {
 		eventhorizon.SetOutput(out),
 	}
 
-	if nil != e.Spec.Validator {
-		val, err := validator.NewBasic(*e.Spec.Validator)
+	if nil != r.Spec.Validator {
+		val, err := validator.NewBasic(*r.Spec.Validator)
 		if nil == err {
 			opts = append(opts, eventhorizon.WithValidator(val))
 		}
 	}
 
-	if nil != e.Spec.Metrics {
-		met, err := metrics.NewBasic(*e.Spec.Metrics)
+	if nil != r.Spec.Metrics {
+		met, err := metrics.NewBasic(*r.Spec.Metrics)
 		if nil == err {
 			opts = append(opts, eventhorizon.WithMetrics(met))
 		}
 	}
 
-	if len(e.Spec.Labels) > 0 {
-		opts = append(opts, eventhorizon.WithLabels(e.Spec.Labels))
+	if len(r.Spec.Labels) > 0 {
+		opts = append(opts, eventhorizon.WithLabels(r.Spec.Labels))
 	}
 
-	c.eventhorizon, err = eventhorizon.New(opts...)
+	e, err := eventhorizon.New(c.context, opts...)
 	if nil != err {
-		return err
+		return nil, err
 	}
 
 	log.Info().
 		Str("name", key).
-		Str("transport", e.Spec.Transport.Type).
-		Str("encoder", e.Spec.Encoder.Type).
-		Str("output", e.Spec.Output.Type).
+		Str("transport", r.Spec.Transport.Type).
+		Str("encoder", r.Spec.Encoder.Type).
+		Str("output", r.Spec.Output.Type).
 		Msg("Set EventHorizon")
 
-	return nil
+	return e, nil
 }

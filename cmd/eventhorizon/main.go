@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io/ioutil"
 	rawlog "log"
 	"os"
@@ -19,7 +20,6 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
 )
@@ -51,9 +51,7 @@ func init() {
 	zerolog.TimestampFieldName = "ts"
 }
 
-func kubernetes() {
-	stopCh := signals.SetupSignalHandler()
-
+func kubernetes(ctx context.Context) {
 	var cfg *rest.Config
 	var err error
 
@@ -76,18 +74,16 @@ func kubernetes() {
 
 	informerFactory := informers.NewSharedInformerFactory(client, time.Second*30)
 
-	c := controller.NewKubernetes(env.Name, env.Threadiness, client, informerFactory.Eventhorizon())
+	c := controller.New(ctx, env.Name, env.Threadiness, client, informerFactory.Eventhorizon())
 
-	informerFactory.Start(stopCh)
+	informerFactory.Start(ctx.Done())
 
-	if err = c.Run(stopCh); err != nil {
+	if err = c.Run(); err != nil {
 		klog.Fatalf("Error running controller: %s", err.Error())
 	}
 }
 
-func standalone() {
-	stopCh := signals.SetupSignalHandler()
-
+func standalone(ctx context.Context) {
 	acessoschema.AddToScheme(scheme.Scheme)
 
 	decode := scheme.Codecs.UniversalDeserializer().Decode
@@ -108,32 +104,23 @@ func standalone() {
 			Msg("Decoding configuration file")
 	}
 
-	var resource *v1alpha2.EventHorizon
+	var r *v1alpha2.EventHorizon
 
 	switch obj.(type) {
 	case *v1alpha2.EventHorizon:
-		resource = obj.(*v1alpha2.EventHorizon)
+		r = obj.(*v1alpha2.EventHorizon)
 
 	default:
 		log.Fatal().
 			Msg("Configuration resource file must be of kind `EventHorizon`")
 	}
 
-	c := controller.NewStandalone(env.Name)
+	c := controller.NewStandalone(ctx, env.Name, r)
 
-	err = c.SyncEventHorizon(resource)
-	if nil != err {
-		key, _ := cache.MetaNamespaceKeyFunc(resource)
-
+	if err = c.Run(); err != nil {
 		log.Fatal().
 			Err(err).
-			Str("name", env.Name).
-			Str("key", key).
-			Msg("Failing resource to load")
-	}
-
-	if err = c.Run(stopCh); err != nil {
-		klog.Fatalf("Error running controller: %s", err.Error())
+			Msg("Error running standalone controller")
 	}
 }
 
@@ -160,11 +147,21 @@ func main() {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
+	exit := signals.SetupSignalHandler()
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		<-exit
+		cancel()
+		<-ctx.Done()
+	}()
+
 	switch env.Mode {
 	case "standalone":
-		standalone()
+		standalone(ctx)
 
 	case "kubernetes":
-		kubernetes()
+		kubernetes(ctx)
 	}
 }

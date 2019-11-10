@@ -8,9 +8,9 @@ spec:
     field2: value2
   queue:
     backlog: 8192
-    maxRetry: 25
+    maxRetry: 13
     retryWait: 500
-    maxRetryWait: 65000
+    maxRetryWait: 60000
   metrics:
     port: 1258
     path: /metrics

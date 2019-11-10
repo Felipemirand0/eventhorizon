@@ -9,9 +9,9 @@ spec:
     field2: value2
   queue:
     backlog: 8192
-    maxRetry: 25
+    maxRetry: 13
     retryWait: 500
-    maxRetryWait: 65000
+    maxRetryWait: 60000
   metrics:
     port: 1258
     path: /metrics
@@ -37,11 +37,11 @@ spec:
       async: false
       subSecondPrecision: false
       requestAck: false
-  validator:
-    allowedTypes:
-    - io.request.grpc
-    - io.request.rpc
-    - io.request.http
-    - io.event.consumer
-    - io.event.producer
-    allowedSources: []
+  # validator:
+  #   allowedTypes:
+  #   - io.request.grpc
+  #   - io.request.rpc
+  #   - io.request.http
+  #   - io.event.consumer
+  #   - io.event.producer
+  #   allowedSources: []

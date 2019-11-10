@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"sync"
 	"time"
 
 	"acesso.io/eventhorizon/pkg/encoder"
@@ -22,7 +21,6 @@ import (
 type EventHorizon struct {
 	context     context.Context
 	cancel      context.CancelFunc
-	mutex       *sync.RWMutex
 	healthcheck *healthcheck
 
 	backlog      int
@@ -39,6 +37,7 @@ type EventHorizon struct {
 
 	handler handler.Handler
 
+	queue   chan struct{}
 	pending chan message
 
 	useHTTPStatusOK bool
@@ -50,6 +49,7 @@ type message struct {
 }
 
 func (s *EventHorizon) Start() error {
+	s.queue = make(chan struct{}, s.backlog)
 	s.pending = make(chan message, s.backlog)
 
 	go func() {
@@ -60,8 +60,8 @@ func (s *EventHorizon) Start() error {
 				break
 			}
 
-			log.WithLevel(level(len(s.pending), s.backlog)).
-				Str("backlog", fmt.Sprintf("%d/%d", len(s.pending), s.backlog)).
+			log.WithLevel(level(len(s.queue), s.backlog)).
+				Str("queue", fmt.Sprintf("%d/%d", len(s.queue), s.backlog)).
 				Msg("Pending events")
 		}
 	}()
@@ -85,13 +85,12 @@ func (s *EventHorizon) Start() error {
 		s.transport.SetReceiver(r)
 	}
 
-	log.Info().
-		Msg("Start EventHorizon")
-
 	return cli.StartReceiver(s.context, s.Receiver())
 }
 
-func (s *EventHorizon) queue(ctx context.Context, e cloudevents.Event) error {
+func (s *EventHorizon) enqueue(ctx context.Context, e cloudevents.Event) error {
+	s.queue <- struct{}{}
+
 	s.pending <- message{
 		context: ctx,
 		event:   e,
@@ -105,19 +104,22 @@ InfiniteLoop:
 	for {
 		select {
 		case msg := <-s.pending:
-			err := s.deliver(msg)
+			go func(msg message) {
+				err := s.deliver(msg)
+				<-s.queue
 
-			if nil != s.metrics {
-				go s.metrics.Record(msg.event, err)
-			}
+				if nil != s.metrics {
+					go s.metrics.Record(msg.event, err)
+				}
 
-			if nil == err {
-				s.healthcheck.failing = true
-				s.healthcheck.reason = err
-			} else {
-				s.healthcheck.failing = false
-				s.healthcheck.reason = nil
-			}
+				if nil != err {
+					s.healthcheck.failing = true
+					s.healthcheck.reason = err
+				} else {
+					s.healthcheck.failing = false
+					s.healthcheck.reason = nil
+				}
+			}(msg)
 
 		case <-s.context.Done():
 			break InfiniteLoop
@@ -127,17 +129,16 @@ InfiniteLoop:
 
 func (s *EventHorizon) deliver(msg message) error {
 	var (
-		errs  []error
 		err   error
-		match bool          = true
-		level zerolog.Level = zerolog.DebugLevel
+		errs  map[string]int = map[string]int{}
+		level zerolog.Level  = zerolog.DebugLevel
 	)
 
-	for i := 0; i < s.maxRetry; i++ {
+	for i := 1; i <= s.maxRetry; i++ {
 		err = s.handler.Handle(msg.context, msg.event)
 
 		if nil != err {
-			errs = append(errs, err)
+			errs[err.Error()]++
 
 			waitTime := s.retryWait * rateinc(1.5, float64(i-1))
 			if waitTime > s.maxRetryWait {
@@ -161,8 +162,7 @@ func (s *EventHorizon) deliver(msg message) error {
 
 	log.WithLevel(level).
 		Err(err).
-		Errs("errors", errs).
-		Bool("match", match).
+		Interface("errors", errs).
 		Str("id", msg.event.ID()).
 		Str("type", msg.event.Type()).
 		Str("specversion", msg.event.SpecVersion()).
@@ -175,7 +175,7 @@ func (s *EventHorizon) deliver(msg message) error {
 }
 
 func (s *EventHorizon) Receiver() func(context.Context, cloudevents.Event) error {
-	return s.queue
+	return s.enqueue
 }
 
 func (s *EventHorizon) SetOption(opt Option) {
@@ -183,21 +183,20 @@ func (s *EventHorizon) SetOption(opt Option) {
 }
 
 func (s *EventHorizon) Close() {
-	log.Info().
-		Msg("Stop EventHorizon")
-
 	s.cancel()
+
+	s.handler.Close()
+	s.output.Close()
+
+	<-s.context.Done()
 }
 
-func New(opts ...Option) (*EventHorizon, error) {
-	ctx, cancel := context.WithCancel(context.Background())
-
+func New(ctx context.Context, opts ...Option) (*EventHorizon, error) {
 	s := &EventHorizon{
-		context:     ctx,
-		cancel:      cancel,
-		mutex:       &sync.RWMutex{},
 		healthcheck: &healthcheck{},
 	}
+
+	s.context, s.cancel = context.WithCancel(ctx)
 
 	for _, opt := range opts {
 		err := opt(s)

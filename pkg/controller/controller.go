@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	. "acesso.io/eventhorizon/pkg/errors"
@@ -13,6 +12,7 @@ import (
 	listers "acesso.io/eventhorizon/pkg/generated/listers/eventhorizon/v1alpha2"
 	. "acesso.io/eventhorizon/pkg/helpers"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -29,37 +29,19 @@ type Controller struct {
 	workqueue    workqueue.RateLimitingInterface
 	eventhorizon *eventhorizon.EventHorizon
 	context      context.Context
-	cancel       context.CancelFunc
-	mutex        *sync.RWMutex
 	threadiness  int
 	lister       listers.EventHorizonLister
 	synced       cache.InformerSynced
 }
 
-func NewStandalone(name string) *Controller {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	return &Controller{
-		name:      name,
-		workqueue: workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "EventHorizon"),
-		context:   ctx,
-		cancel:    cancel,
-		mutex:     &sync.RWMutex{},
-	}
-}
-
-func NewKubernetes(name string, threadiness int, client clientset.Interface, informer informers.Interface) *Controller {
+func New(ctx context.Context, name string, threadiness int, client clientset.Interface, informer informers.Interface) *Controller {
 	utilruntime.Must(acessoscheme.AddToScheme(scheme.Scheme))
 
-	ctx, cancel := context.WithCancel(context.Background())
-
-	controller := &Controller{
+	c := &Controller{
 		name:        name,
 		client:      client,
 		workqueue:   workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "EventHorizon"),
 		context:     ctx,
-		cancel:      cancel,
-		mutex:       &sync.RWMutex{},
 		threadiness: threadiness,
 		lister:      informer.V1alpha2().EventHorizons().Lister(),
 		synced:      informer.V1alpha2().EventHorizons().Informer().HasSynced,
@@ -72,33 +54,16 @@ func NewKubernetes(name string, threadiness int, client clientset.Interface, inf
 		EventHorizons().
 		Informer().
 		AddEventHandler(cache.ResourceEventHandlerFuncs{
-			AddFunc: controller.enqueue,
+			AddFunc: c.enqueue,
 		})
 
-	return controller
+	return c
 }
 
-func (c *Controller) Run(stopCh <-chan struct{}) error {
+func (c *Controller) Run() error {
 	log.Info().
 		Str("name", c.name).
-		Msg("Starting instance")
-
-	defer func() {
-		<-c.context.Done()
-
-		log.Info().
-			Str("name", c.name).
-			Msg("Stopping instance")
-
-		if nil != c.eventhorizon {
-			c.eventhorizon.Close()
-		}
-
-		klog.Info("Shut down workers")
-		c.workqueue.ShutDown()
-	}()
-
-	defer utilruntime.HandleCrash()
+		Msg("Starting controller")
 
 	klog.Info("Wait for informer caches to sync")
 
@@ -106,42 +71,37 @@ func (c *Controller) Run(stopCh <-chan struct{}) error {
 		c.synced,
 	})
 
-	if ok := cache.WaitForCacheSync(stopCh, synceds...); !ok {
+	if ok := cache.WaitForCacheSync(c.context.Done(), synceds...); !ok {
 		return ErrWaitCacheSync
 	}
 
 	klog.Info("Start workers")
 
 	for i := 1; i <= c.threadiness; i++ {
-		go wait.Until(c.runWorker, time.Second, stopCh)
+		go wait.Until(c.runWorker, time.Second, c.context.Done())
 	}
 
-	go func() {
-		// wait for EventHorizon
-		for {
-			if nil != c.context.Err() {
-				return
-			}
+	<-c.context.Done()
 
-			if nil != c.eventhorizon {
-				break
-			}
-		}
+	log.Info().
+		Str("name", c.name).
+		Msg("Stopping controller")
 
-		// start it
-		c.eventhorizon.Start() // this is a blocking call
+	if nil != c.eventhorizon {
+		c.eventhorizon.Close()
+	}
 
-		c.cancel()
-	}()
-
-	<-stopCh
-	c.cancel()
+	klog.Info("Stop workers")
+	c.workqueue.ShutDown()
 
 	return nil
 }
 
 func (c *Controller) runWorker() {
 	for c.processNextWorkItem() {
+		if nil != c.eventhorizon {
+			c.workqueue.ShutDown()
+		}
 	}
 }
 
@@ -166,13 +126,7 @@ func (c *Controller) processNextWorkItem() bool {
 			return err
 		}
 
-		if nil != c.eventhorizon {
-			c.workqueue.Forget(key)
-			klog.Errorf("Service already initiated, live reload not implemented, skipping resource '%s'.", key)
-			return nil
-		}
-
-		e, err := c.client.
+		r, err := c.client.
 			EventhorizonV1alpha2().
 			EventHorizons(namespace).
 			Get(name, metav1.GetOptions{})
@@ -183,7 +137,7 @@ func (c *Controller) processNextWorkItem() bool {
 			return err
 		}
 
-		err = c.SyncEventHorizon(e)
+		e, err := c.syncEventHorizon(r)
 
 		if ErrNameMismatch == err {
 			klog.Errorf("Mismatch instance name (%s) with resource name (%s), skipping", c.name, key)
@@ -196,6 +150,28 @@ func (c *Controller) processNextWorkItem() bool {
 			c.workqueue.AddRateLimited(key)
 			return nil
 		}
+
+		c.eventhorizon = e
+
+		go func() {
+			log.Info().
+				Msg("Starting EventHorizon")
+
+			err := c.eventhorizon.Start()
+
+			c.eventhorizon.Close()
+
+			var level zerolog.Level = zerolog.InfoLevel
+
+			if nil != err {
+				level = zerolog.ErrorLevel
+				c.workqueue.AddRateLimited(key)
+			}
+
+			log.WithLevel(level).
+				Err(err).
+				Msg("Stopping EventHorizon")
+		}()
 
 		klog.Infof("Successfully synced resource '%s'", key)
 		c.workqueue.Forget(key)

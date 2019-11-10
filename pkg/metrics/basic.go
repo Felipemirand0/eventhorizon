@@ -6,8 +6,10 @@ import (
 	"net/http"
 
 	"acesso.io/eventhorizon/pkg/apis/eventhorizon/v1alpha2"
+
 	cloudevents "github.com/cloudevents/sdk-go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/rs/zerolog/log"
 )
 
 type Basic struct {
@@ -17,8 +19,17 @@ type Basic struct {
 func (m *Basic) Listen(ctx context.Context) error {
 	go func() {
 		<-ctx.Done()
+
+		log.Info().
+			Str("address", m.server.Addr).
+			Msg("Stopping Metrics")
+
 		m.server.Shutdown(ctx)
 	}()
+
+	log.Info().
+		Str("address", m.server.Addr).
+		Msg("Starting Metrics")
 
 	err := m.server.ListenAndServe()
 
